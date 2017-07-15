@@ -3,14 +3,18 @@
 require_once 'msumfields.civix.php';
 
 /**
- * Implements hook_civicrm_sumfields_definitions()
+ * Implements hook_civicrm_sumfields_definitions().
  */
 function msumfields_civicrm_sumfields_definitions(&$custom) {
   dsm($custom, 'custom');
-  dsm(var_export($custom['fields']['contribution_total_this_year'],1),'contribution_total_this_year');
-  
-  $custom['fields']['contribution_total_this_calendar_year'] = array (
-    'label' => 'Total Contributions this Calendar Year',
+  dsm(var_export($custom['fields']['contribution_total_this_year'], 1), 'contribution_total_this_year');
+
+  $custom['fields']['contribution_total_this_year']['label'] = msumfields_ts('Total Contributions this Fiscal Year');
+  $custom['fields']['contribution_total_last_year']['label'] = msumfields_ts('Total Contributions last Fiscal Year');
+  $custom['fields']['contribution_total_year_before_last']['label'] = msumfields_ts('Total Contributions Fiscal Year Before Last');
+
+  $custom['fields']['contribution_total_this_calendar_year'] = array(
+    'label' => msumfields_ts('Total Contributions this Calendar Year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
@@ -22,9 +26,54 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'trigger_table' => 'civicrm_contribution',
     'optgroup' => 'fundraising',
   );
-  
+
+  $custom['fields']['contribution_total_last_calendar_year'] = array(
+    'label' => msumfields_ts('Total Contributions last Calendar Year'),
+    'data_type' => 'Money',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '32',
+    'trigger_sql' => '(SELECT COALESCE(SUM(total_amount),0)
+        FROM civicrm_contribution t1 WHERE YEAR(CAST(receive_date AS DATE)) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
+        AND t1.contact_id = NEW.contact_id AND
+        t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+    'trigger_table' => 'civicrm_contribution',
+    'optgroup' => 'fundraising',
+  );
+
+  $custom['fields']['contribution_total_calendar_year_before_last'] = array(
+    'label' => msumfields_ts('Total Contributions Calendar Year Before Last'),
+    'data_type' => 'Money',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '32',
+    'trigger_sql' => '(SELECT COALESCE(SUM(total_amount),0)
+        FROM civicrm_contribution t1 WHERE YEAR(CAST(receive_date AS DATE)) = YEAR(DATE_SUB(CURDATE(), INTERVAL 2 YEAR))
+        AND t1.contact_id = NEW.contact_id AND
+        t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+    'trigger_table' => 'civicrm_contribution',
+    'optgroup' => 'fundraising',
+  );
+
+  $custom['fields']['contribution_count_distinct_years'] = array(
+    'label' => msumfields_ts('Number of Years of Contributions'),
+    'data_type' => 'Integer',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '32',
+    'trigger_sql' => '(SELECT count(DISTINCT year(receive_date))
+        FROM civicrm_contribution t1
+        WHERE
+          t1.contact_id = NEW.contact_id
+          AND t1.contribution_status_id = 1
+          AND t1.financial_type_id IN (%financial_type_ids))
+    ',
+    'trigger_table' => 'civicrm_contribution',
+    'optgroup' => 'fundraising',
+  );
+
   $custom['fields']['hard_and_soft'] = array(
-    'label' => 'All contributions + soft credits',
+    'label' => msumfields_ts('Lifetime contributions + soft credits'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
@@ -40,6 +89,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'trigger_table' => 'civicrm_contribution',
     'optgroup' => 'mycustom', // could just add this to the existing "fundraising" optgroup
   );
+
   // If we don't want to add our fields to the existing optgroups or fieldsets on the admin form, we can make new ones
   $custom['optgroups']['mycustom'] = array(
     'title' => 'My group of checkboxes',
@@ -175,23 +225,29 @@ function msumfields_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_preProcess
  *
-function msumfields_civicrm_preProcess($formName, &$form) {
+  function msumfields_civicrm_preProcess($formName, &$form) {
 
-} // */
+  } // */
 
 /**
  * Implements hook_civicrm_navigationMenu().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
  *
-function msumfields_civicrm_navigationMenu(&$menu) {
+  function msumfields_civicrm_navigationMenu(&$menu) {
   _msumfields_civix_insert_navigation_menu($menu, NULL, array(
-    'label' => ts('The Page', array('domain' => 'com.joineryhq.msumfields')),
-    'name' => 'the_page',
-    'url' => 'civicrm/the-page',
-    'permission' => 'access CiviReport,access CiviContribute',
-    'operator' => 'OR',
-    'separator' => 0,
+  'label' => ts('The Page', array('domain' => 'com.joineryhq.msumfields')),
+  'name' => 'the_page',
+  'url' => 'civicrm/the-page',
+  'permission' => 'access CiviReport,access CiviContribute',
+  'operator' => 'OR',
+  'separator' => 0,
   ));
   _msumfields_civix_navigationMenu($menu);
-} // */
+  } // */
+function msumfields_ts($text, $params = array()) {
+  if (!array_key_exists('domain', $params)) {
+    $params['domain'] = 'com.joineryhq.msumfields';
+  }
+  return ts($text, $params);
+}
