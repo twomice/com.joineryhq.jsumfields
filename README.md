@@ -15,6 +15,9 @@ This extension currently provides the following fields:
 * CiviContribute: Total Contributions Calendar Year Before Last (also: renames Summary Fields "Total Contributions Year Before Last" to "Total Contributions Fiscal Year Before Last")
 * CiviContribute: Lifetime contributions + soft credits
 * CiviContribute: Number of years of contributions
+* CiviContribute: Total soft credits this calendar year
+* CiviContribute: Total soft credits previous calendar year
+* CiviContribute: Total soft credits previous fiscal year
 
 Development is under way to provide these fields:
 
@@ -24,9 +27,6 @@ Development is under way to provide these fields:
 * CiviGrant: Total number of grants received
 * CiviGrant: Total $ in grants received
 * CiviGrant: Grant types received
-* CiviContribute: Total soft credits this calendar year
-* CiviContribute: Total soft credits previous fiscal year
-* CiviContribute: Total soft credits previous calendar year
 * CiviContribute/Relationship: Related party contributions this fiscal year
 * CiviContribute/Relationship: Related party contributions this calendar year
 * CiviContribute/Relationship: Related party contributions last fiscal year

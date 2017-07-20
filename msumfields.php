@@ -7,11 +7,11 @@ require_once 'msumfields.civix.php';
  */
 function msumfields_civicrm_sumfields_definitions(&$custom) {
   dsm($custom, 'custom');
-  dsm(var_export($custom['fields']['contribution_total_this_year'], 1), 'contribution_total_this_year');
 
   $custom['fields']['contribution_total_this_year']['label'] = msumfields_ts('Total Contributions this Fiscal Year');
   $custom['fields']['contribution_total_last_year']['label'] = msumfields_ts('Total Contributions last Fiscal Year');
   $custom['fields']['contribution_total_year_before_last']['label'] = msumfields_ts('Total Contributions Fiscal Year Before Last');
+  $custom['fields']['soft_total_this_year']['label'] = msumfields_ts('Total Soft Credits this Fiscal Year');
 
   $custom['fields']['contribution_total_this_calendar_year'] = array(
     'label' => msumfields_ts('Total Contributions this Calendar Year'),
@@ -19,10 +19,15 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => '(SELECT COALESCE(SUM(total_amount),0)
-        FROM civicrm_contribution t1 WHERE YEAR(CAST(receive_date AS DATE)) = YEAR(CURDATE())
-        AND t1.contact_id = NEW.contact_id AND
-        t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+    'trigger_sql' => '(
+      SELECT COALESCE(SUM(total_amount),0)
+      FROM civicrm_contribution t1
+      WHERE
+        YEAR(CAST(receive_date AS DATE)) = YEAR(CURDATE())
+        AND t1.contact_id = NEW.contact_id
+        AND t1.contribution_status_id = 1
+        AND t1.financial_type_id IN (%financial_type_ids)
+    )',
     'trigger_table' => 'civicrm_contribution',
     'optgroup' => 'fundraising',
   );
@@ -33,10 +38,14 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => '(SELECT COALESCE(SUM(total_amount),0)
-        FROM civicrm_contribution t1 WHERE YEAR(CAST(receive_date AS DATE)) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
-        AND t1.contact_id = NEW.contact_id AND
-        t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+    'trigger_sql' => '(
+      SELECT COALESCE(SUM(total_amount),0)
+      FROM civicrm_contribution t1
+      WHERE YEAR(CAST(receive_date AS DATE)) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
+        AND t1.contact_id = NEW.contact_id
+        AND t1.contribution_status_id = 1
+        AND t1.financial_type_id IN (%financial_type_ids)
+    )',
     'trigger_table' => 'civicrm_contribution',
     'optgroup' => 'fundraising',
   );
@@ -47,10 +56,14 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => '(SELECT COALESCE(SUM(total_amount),0)
-        FROM civicrm_contribution t1 WHERE YEAR(CAST(receive_date AS DATE)) = YEAR(DATE_SUB(CURDATE(), INTERVAL 2 YEAR))
-        AND t1.contact_id = NEW.contact_id AND
-        t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+    'trigger_sql' => '(
+      SELECT COALESCE(SUM(total_amount),0)
+      FROM civicrm_contribution t1
+      WHERE YEAR(CAST(receive_date AS DATE)) = YEAR(DATE_SUB(CURDATE(), INTERVAL 2 YEAR))
+        AND t1.contact_id = NEW.contact_id
+        AND t1.contribution_status_id = 1
+        AND t1.financial_type_id IN (%financial_type_ids)
+    )',
     'trigger_table' => 'civicrm_contribution',
     'optgroup' => 'fundraising',
   );
@@ -61,15 +74,82 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => '(SELECT count(DISTINCT year(receive_date))
-        FROM civicrm_contribution t1
-        WHERE
-          t1.contact_id = NEW.contact_id
-          AND t1.contribution_status_id = 1
-          AND t1.financial_type_id IN (%financial_type_ids))
-    ',
+    'trigger_sql' => '(
+      SELECT count(DISTINCT year(receive_date))
+      FROM civicrm_contribution t1
+      WHERE
+        t1.contact_id = NEW.contact_id
+        AND t1.contribution_status_id = 1
+        AND t1.financial_type_id IN (%financial_type_ids)
+    )',
     'trigger_table' => 'civicrm_contribution',
     'optgroup' => 'fundraising',
+  );
+
+  $custom['fields']['soft_total_this_calendar_year'] = array(
+    'label' => msumfields_ts('Total Soft Credits this Calendar Year'),
+    'data_type' => 'Money',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '32',
+    'trigger_sql' => '(
+      SELECT COALESCE(SUM(amount),0)
+      FROM civicrm_contribution_soft t1
+      WHERE t1.contact_id = NEW.contact_id
+      AND t1.contribution_id IN (
+        SELECT id
+        FROM civicrm_contribution
+        WHERE contribution_status_id = 1
+          AND financial_type_id IN (%financial_type_ids)
+          AND YEAR(receive_date) = YEAR(CURDATE())
+      )
+    )',
+    'trigger_table' => 'civicrm_contribution_soft',
+    'optgroup' => 'soft',
+  );
+
+  $custom['fields']['soft_total_last_calendar_year'] = array(
+    'label' => msumfields_ts('Total Soft Credits last Calendar Year'),
+    'data_type' => 'Money',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '32',
+    'trigger_sql' => '(
+      SELECT COALESCE(SUM(amount),0)
+      FROM civicrm_contribution_soft t1
+      WHERE t1.contact_id = NEW.contact_id
+      AND t1.contribution_id IN (
+        SELECT id
+        FROM civicrm_contribution
+        WHERE contribution_status_id = 1
+          AND financial_type_id IN (%financial_type_ids)
+          AND YEAR(receive_date) = (YEAR(CURDATE()) - 1)
+      )
+    )',
+    'trigger_table' => 'civicrm_contribution_soft',
+    'optgroup' => 'soft',
+  );
+
+  $custom['fields']['soft_total_last_year'] = array(
+    'label' => msumfields_ts('Total Soft Credits last Fiscal Year'),
+    'data_type' => 'Money',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '32',
+    'trigger_sql' => '(
+      SELECT COALESCE(SUM(amount),0)
+      FROM civicrm_contribution_soft t1
+      WHERE t1.contact_id = NEW.contact_id
+      AND t1.contribution_id IN (
+        SELECT id
+        FROM civicrm_contribution
+        WHERE contribution_status_id = 1
+          AND financial_type_id IN (%financial_type_ids)
+          AND CAST(receive_date AS DATE) BETWEEN DATE_SUB("%current_fiscal_year_begin", INTERVAL 1 YEAR) AND DATE_SUB("%current_fiscal_year_end", INTERVAL 1 YEAR)
+      )
+    )',
+    'trigger_table' => 'civicrm_contribution_soft',
+    'optgroup' => 'soft',
   );
 
   $custom['fields']['hard_and_soft'] = array(
@@ -81,11 +161,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'trigger_sql' => '(
       SELECT COALESCE(SUM(cont1.total_amount), 0)
       FROM civicrm_contribution cont1
-      LEFT JOIN civicrm_contribution_soft soft
-        ON soft.contribution_id = cont1.id
-      WHERE (cont1.contact_id = NEW.contact_id OR soft.contact_id = NEW.contact_id)
-        AND cont1.contribution_status_id = 1 AND cont1.financial_type_id IN (%financial_type_ids)
-      )',
+        LEFT JOIN civicrm_contribution_soft soft ON soft.contribution_id = cont1.id
+      WHERE
+        (cont1.contact_id = NEW.contact_id OR soft.contact_id = NEW.contact_id)
+        AND cont1.contribution_status_id = 1
+        AND cont1.financial_type_id IN (%financial_type_ids)
+    )',
     'trigger_table' => 'civicrm_contribution',
     'optgroup' => 'mycustom', // could just add this to the existing "fundraising" optgroup
   );
