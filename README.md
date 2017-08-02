@@ -19,6 +19,7 @@ This extension currently provides the following fields:
 * CiviContribute: Total soft credits previous calendar year
 * CiviContribute: Total soft credits previous fiscal year
 * CiviContribute/Relationship: Related contact contributions this fiscal year
+* CiviContribute/Relationship: Related party contributions this calendar year
 
 Development is under way to provide these fields:
 
@@ -28,7 +29,6 @@ Development is under way to provide these fields:
 * CiviGrant: Total number of grants received
 * CiviGrant: Total $ in grants received
 * CiviGrant: Grant types received
-* CiviContribute/Relationship: Related party contributions this calendar year
 * CiviContribute/Relationship: Related party contributions last fiscal year
 * CiviContribute/Relationship: Related party contributions last calendar year
 * CiviContribute/Relationship: Related party contributions all time

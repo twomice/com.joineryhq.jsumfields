@@ -328,6 +328,94 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     ),
     'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
   );
+  
+  $custom['fields']['relatedcontrib_this_calendar_year'] = array(
+    'label' => msumfields_ts('Related contact contributions this calendar year'),
+    'data_type' => 'Money',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '32',
+    'trigger_sql' => 
+    // NOTE: We want something as low-resource-usage as possible, since we'll
+    // not be using this value at all. Array properties named 'msumfields_*'
+    // will be used to define the "real" triggers.
+    '
+      (
+      SELECT 1
+      )
+    ',
+    'trigger_table' => 'civicrm_contribution',
+    'msumfields_trigger_sql' => _msumfields_sql_rewrite('
+      (
+        SELECT
+          coalesce(sum(cont1.total_amount), 0)
+        FROM
+          civicrm_relationship r
+          INNER JOIN civicrm_contribution cont1
+        WHERE
+          r.is_active
+          AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          AND (
+            (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id)
+            OR
+            (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id)
+          )
+          AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
+      )
+    '),
+    'msumfields_matchtable' => 'civicrm_contact',
+    'msumfields_matchcolumn' => 'id',
+    'msumfields_extra' => array(
+      array(
+        'trigger_table' => 'civicrm_relationship',
+        'entity_column' => 'contact_id_a',
+        'trigger_sql' => _msumfields_sql_rewrite('
+          (
+            SELECT
+              coalesce(sum(cont1.total_amount), 0)
+            FROM
+              civicrm_relationship r
+              INNER JOIN civicrm_contribution cont1
+            WHERE
+              r.is_active
+              AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+              AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+              AND (
+                (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
+                OR
+                (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_a)
+              )
+              AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
+          )
+        '),
+      ),
+      array(
+        'trigger_table' => 'civicrm_relationship',
+        'entity_column' => 'contact_id_b',
+        'trigger_sql' => _msumfields_sql_rewrite('
+          (
+            SELECT
+              coalesce(sum(cont1.total_amount), 0)
+            FROM
+              civicrm_relationship r
+              INNER JOIN civicrm_contribution cont1
+            WHERE
+              r.is_active
+              AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+              AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+              AND (
+                (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
+                OR
+                (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_b)
+              )
+              AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
+            )
+        '),
+      ),
+    ),
+    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+  );
 
   // Define a new optgroup fieldset, to contain our Related Contributions fields
   // and options.
@@ -698,13 +786,13 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
     ) {
       continue;
     }
-    
+
     // Define shorthand variables for relevant values.
     $table = $custom['fields'][$base_column_name]['trigger_table'];
     $trigger = $custom['fields'][$base_column_name]['msumfields_trigger_sql'];
     $matchtable = $custom['fields'][$base_column_name]['msumfields_matchtable'];
     $matchcolumn = $custom['fields'][$base_column_name]['msumfields_matchcolumn'];
-    
+      
     // We replace NEW.contact_id with t2.contact_id to reflect the difference
     // between the trigger sql statement and the initial sql statement
     // to load the data.
@@ -714,22 +802,46 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
       $session->setStatus($msg);
       continue;
     }
+    
+    if (!isset($temp_sql[$table])) {
+      $temp_sql[$table] = array(
+        'temp_table' => sumfields_create_temporary_table($table),
+        'matchtable' => $matchtable,
+        'matchcolumn' => $matchcolumn,
+        'triggers' => array(),
+        'map' => array(),
+      );
+    }
+    $temp_sql[$table]['triggers'][$base_column_name] = $trigger;
+    $temp_sql[$table]['map'][$base_column_name] = $params['column_name'];
+  }
+  
+  if(empty($temp_sql)) {
+    // Is this an error? Not sure. But it will be an error if we let this
+    // function continue - it will produce a broken sql statement, so we
+    // short circuit here.
+    $session::setStatus(ts("Not regenerating content, no fields defined."), ts('Error'), 'error');
+    return TRUE;
+  }
 
-    $temp_table = sumfields_create_temporary_table($table);
-
+  foreach ($temp_sql as $table => $data) {
     // Calculate data and insert into temp table
-    $query = "INSERT INTO `{$temp_table}` SELECT t2.$matchcolumn, "
-      . $trigger
-      . " FROM `$matchtable` AS t2 "
-      . "JOIN civicrm_contact AS c ON t2.{$matchcolumn} = c.id "
-      . "GROUP BY t2.{$matchcolumn}";
+    $query = "INSERT INTO `{$data['temp_table']}` SELECT t2.{$data['matchcolumn']}, "
+      . implode(",\n", $data['triggers'])
+      . " FROM `{$data['matchtable']}` AS t2 "
+      . "JOIN civicrm_contact AS c ON t2.{$data['matchcolumn']} = c.id "
+      . "GROUP BY t2.{$data['matchcolumn']}";
     CRM_Core_DAO::executeQuery($query);
 
     // Move temp data into custom field table
     $query = "INSERT INTO `$table_name` "
-      . "(entity_id, {$params['column_name']})"
-      . "(SELECT contact_id, {$base_column_name} FROM `{$temp_table}`) "
-      . "ON DUPLICATE KEY UPDATE `{$params['column_name']}` = `$base_column_name`";
+      . "(entity_id, " . implode(',', $data['map']) . ") "
+      . "(SELECT contact_id, " . implode(',', array_keys($data['map'])) . " FROM `{$data['temp_table']}`) "
+      . "ON DUPLICATE KEY UPDATE ";
+    foreach ($data['map'] as $tmp => $val) {
+      $query .= " $val = $tmp,";
+    }
+    $query = rtrim($query, ',');
     CRM_Core_DAO::executeQuery($query);
   }
 
