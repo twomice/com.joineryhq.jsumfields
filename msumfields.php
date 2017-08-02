@@ -51,8 +51,8 @@ function msumfields_civicrm_postProcess($formName, &$form) {
 
 /**
  * Implements hook_civicrm_sumfields_definitions().
- * 
- * NOTE: Array properties in $custom named 'msumfields_*' will be used by 
+ *
+ * NOTE: Array properties in $custom named 'msumfields_*' will be used by
  * msumfields_civicrm_triggerInfo() to build the "real" trggers, and by
  * _msumfields_generate_data_based_on_current_data() to populate the "real"
  * values.
@@ -222,20 +222,20 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'optgroup' => 'fundraising', // could just add this to the existing "fundraising" optgroup
   );
 
-  /* For the "Related Contributions" group of fields, we cannot make them work 
-   * as true sumfields fields, because of assumptions in sumfields 
+  /* For the "Related Contributions" group of fields, we cannot make them work
+   * as true sumfields fields, because of assumptions in sumfields
    * [https://github.com/progressivetech/net.ourpowerbase.sumfields/blob/master/sumfields.php#L476]:
    *  1. that every trigger table has a column named contact_id (which civicrm_relationship does not)
    *  2. that the contact_id column in the trigger table is the one for whom the custom field should be updated (which is not true for any realtionship-based sumfields).
    * So to make this work, we hijack and emulate select parts of sumfields logic:
-   *  a. _msumfields_generate_data_based_on_current_data(), our own version of 
+   *  a. _msumfields_generate_data_based_on_current_data(), our own version of
    *    sumfields_generate_data_based_on_current_data()
-   *  b. calling _msumfields_generate_data_based_on_current_data() via 
+   *  b. calling _msumfields_generate_data_based_on_current_data() via
    *    apiwrappers hook, so it always happens when the API gendata is called.
-   *  c. calling _msumfields_generate_data_based_on_current_data() via 
-   *    postProcess hook, so it happens (as needed ) when the Sumfields form is 
+   *  c. calling _msumfields_generate_data_based_on_current_data() via
+   *    postProcess hook, so it happens (as needed ) when the Sumfields form is
    *    submitted.
-   * To make all this happen, we define special values in array properties named 
+   * To make all this happen, we define special values in array properties named
    * 'msumfields_*', which are ignored by sumfields, but are specifically
    * handled by _msumfields_generate_data_based_on_current_data() and
    * msumfields_civicrm_triggerInfo().
@@ -247,7 +247,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => 
+    'trigger_sql' =>
     // NOTE: We want something as low-resource-usage as possible, since we'll
     // not be using this value at all. Array properties named 'msumfields_*'
     // will be used to define the "real" triggers.
@@ -328,14 +328,14 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     ),
     'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
   );
-  
+
   $custom['fields']['relatedcontrib_this_calendar_year'] = array(
     'label' => msumfields_ts('Related contact contributions this calendar year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => 
+    'trigger_sql' =>
     // NOTE: We want something as low-resource-usage as possible, since we'll
     // not be using this value at all. Array properties named 'msumfields_*'
     // will be used to define the "real" triggers.
@@ -657,7 +657,7 @@ function msumfields_civicrm_triggerInfo(&$info, $tableName) {
       $triggers[$table] .= $generic_sql . $extra_sql . ' ON DUPLICATE KEY UPDATE ' . $extra_sql . ";\n";
     }
   }
-  
+
   foreach ($triggers as $table => $sql) {
     // We want to fire this trigger on insert, update and delete.
     $info[] = array(
@@ -685,7 +685,7 @@ function msumfields_civicrm_triggerInfo(&$info, $tableName) {
 
 /**
  * Get all available relationship types; a simple wrapper around the CiviCRM API.
- * 
+ *
  * @return array Suitable for a select field.
  */
 function _msumfields_get_all_relationship_types() {
@@ -705,9 +705,9 @@ function _msumfields_get_all_relationship_types() {
 }
 
 /**
- * Replace msumfields %variables with the appropriate values. NOTE: this function 
+ * Replace msumfields %variables with the appropriate values. NOTE: this function
  * does NOT call msumfields_sql_rewrite().
- * 
+ *
  * @return string Modified $sql.
  */
 function _msumfields_sql_rewrite($sql) {
@@ -734,12 +734,12 @@ function _msumfields_sql_rewrite($sql) {
 }
 
 /**
- * Define our own triggers, as needed (some msumfields, such as the "Related 
- * Contributions" group, aren't fully supported by sumfields, so we do the extra 
+ * Define our own triggers, as needed (some msumfields, such as the "Related
+ * Contributions" group, aren't fully supported by sumfields, so we do the extra
  * work here.
- * 
+ *
  * Copied and modified from sumfields_generate_data_based_on_current_data().
- * 
+ *
  * Generate calculated fields for all contacts.
  * This function is designed to be run once when
  * the extension is installed or initialized.
@@ -775,13 +775,13 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
   // Variables used for building the temp tables and temp insert statement.
   $temp_sql = array();
 
-  foreach($custom_fields as $base_column_name => $params) {
+  foreach ($custom_fields as $base_column_name => $params) {
     // For this to work, we need several specific configuraton bits, so just
     // skip to the next custom_field if they're not all defined.
     if (
-      !in_array($base_column_name, $active_fields) 
-      || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql']) 
-      || empty($custom['fields'][$base_column_name]['msumfields_matchtable']) 
+      !in_array($base_column_name, $active_fields)
+      || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql'])
+      || empty($custom['fields'][$base_column_name]['msumfields_matchtable'])
       || empty($custom['fields'][$base_column_name]['msumfields_matchcolumn'])
     ) {
       continue;
@@ -792,7 +792,7 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
     $trigger = $custom['fields'][$base_column_name]['msumfields_trigger_sql'];
     $matchtable = $custom['fields'][$base_column_name]['msumfields_matchtable'];
     $matchcolumn = $custom['fields'][$base_column_name]['msumfields_matchcolumn'];
-      
+
     // We replace NEW.contact_id with t2.contact_id to reflect the difference
     // between the trigger sql statement and the initial sql statement
     // to load the data.
@@ -802,7 +802,7 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
       $session->setStatus($msg);
       continue;
     }
-    
+
     if (!isset($temp_sql[$table])) {
       $temp_sql[$table] = array(
         'temp_table' => sumfields_create_temporary_table($table),
@@ -815,8 +815,8 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
     $temp_sql[$table]['triggers'][$base_column_name] = $trigger;
     $temp_sql[$table]['map'][$base_column_name] = $params['column_name'];
   }
-  
-  if(empty($temp_sql)) {
+
+  if (empty($temp_sql)) {
     // Is this an error? Not sure. But it will be an error if we let this
     // function continue - it will produce a broken sql statement, so we
     // short circuit here.
