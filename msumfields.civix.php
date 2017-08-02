@@ -128,14 +128,14 @@ function _msumfields_civix_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
 }
 
 /**
- * @return CRM_Jsumfields_Upgrader
+ * @return CRM_Msumfields_Upgrader
  */
 function _msumfields_civix_upgrader() {
-  if (!file_exists(__DIR__ . '/CRM/Jsumfields/Upgrader.php')) {
+  if (!file_exists(__DIR__ . '/CRM/Msumfields/Upgrader.php')) {
     return NULL;
   }
   else {
-    return CRM_Jsumfields_Upgrader_Base::instance();
+    return CRM_Msumfields_Upgrader_Base::instance();
   }
 }
 

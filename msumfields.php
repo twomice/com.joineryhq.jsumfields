@@ -3,11 +3,62 @@
 require_once 'msumfields.civix.php';
 
 /**
+ * Implements hook_civicrm_buildForm().
+ */
+function msumfields_civicrm_buildForm($formName, &$form) {
+  if ($formName == 'CRM_Sumfields_Form_SumFields') {
+    $tpl = CRM_Core_Smarty::singleton();
+    $fieldsets = $tpl->_tpl_vars['fieldsets'];
+
+    // Get msumfields definitions, because we need the fieldset names as a target
+    // for where to insert our option fields
+    $custom = array();
+    msumfields_civicrm_sumfields_definitions($custom);
+
+    // Create a field for Financial Types on related contributions.
+    $label = msumfields_ts('Financial Types');
+    $form->add('select', 'msumfields_relatedcontrib_financial_type_ids', $label, sumfields_get_all_financial_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $fieldsets[$custom['optgroups']['relatedcontrib']['fieldset']]['msumfields_relatedcontrib_financial_type_ids'] = msumfields_ts('Financial types to be used when calculating Related Contribution summary fields.');
+
+    // Create a field for Relationship Types on related contributions.
+    $label = msumfields_ts('Relationship Types');
+    $form->add('select', 'msumfields_relatedcontrib_relationship_type_ids', $label, _msumfields_get_all_relationship_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $fieldsets[$custom['optgroups']['relatedcontrib']['fieldset']]['msumfields_relatedcontrib_relationship_type_ids'] = msumfields_ts('Relationship types to be used when calculating Related Contribution summary fields.');
+
+    // Set defaults.
+    $form->setDefaults(array(
+      'msumfields_relatedcontrib_financial_type_ids' => sumfields_get_setting('msumfields_relatedcontrib_financial_type_ids'),
+      'msumfields_relatedcontrib_relationship_type_ids' => sumfields_get_setting('msumfields_relatedcontrib_relationship_type_ids'),
+    ));
+
+    $form->assign('fieldsets', $fieldsets);
+  }
+}
+
+/**
+ * Implements hook_civicrm_postProcess().
+ */
+function msumfields_civicrm_postProcess($formName, &$form) {
+  if ($formName == 'CRM_Sumfields_Form_SumFields') {
+    // Save option fields as submitted.
+    sumfields_save_setting('msumfields_relatedcontrib_financial_type_ids', $form->_submitValues['msumfields_relatedcontrib_financial_type_ids']);
+    sumfields_save_setting('msumfields_relatedcontrib_relationship_type_ids', $form->_submitValues['msumfields_relatedcontrib_relationship_type_ids']);
+
+    // Define our own triggers, as needed.
+    _msumfields_generate_data_based_on_current_data();
+  }
+}
+
+/**
  * Implements hook_civicrm_sumfields_definitions().
+ * 
+ * NOTE: Array properties in $custom named 'msumfields_*' will be used by 
+ * msumfields_civicrm_triggerInfo() to build the "real" trggers, and by
+ * _msumfields_generate_data_based_on_current_data() to populate the "real"
+ * values.
  */
 function msumfields_civicrm_sumfields_definitions(&$custom) {
-  dsm($custom, 'custom');
-
+  // Adjust some labels in summary fields to be more explicit.
   $custom['fields']['contribution_total_this_year']['label'] = msumfields_ts('Total Contributions this Fiscal Year');
   $custom['fields']['contribution_total_last_year']['label'] = msumfields_ts('Total Contributions last Fiscal Year');
   $custom['fields']['contribution_total_year_before_last']['label'] = msumfields_ts('Total Contributions Fiscal Year Before Last');
@@ -168,13 +219,121 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
         AND cont1.financial_type_id IN (%financial_type_ids)
     )',
     'trigger_table' => 'civicrm_contribution',
-    'optgroup' => 'mycustom', // could just add this to the existing "fundraising" optgroup
+    'optgroup' => 'fundraising', // could just add this to the existing "fundraising" optgroup
   );
 
-  // If we don't want to add our fields to the existing optgroups or fieldsets on the admin form, we can make new ones
-  $custom['optgroups']['mycustom'] = array(
-    'title' => 'My group of checkboxes',
-    'fieldset' => 'Custom summary fields', // Could add this to an existing fieldset by naming it here
+  /* For the "Related Contributions" group of fields, we cannot make them work 
+   * as true sumfields fields, because of assumptions in sumfields 
+   * [https://github.com/progressivetech/net.ourpowerbase.sumfields/blob/master/sumfields.php#L476]:
+   *  1. that every trigger table has a column named contact_id (which civicrm_relationship does not)
+   *  2. that the contact_id column in the trigger table is the one for whom the custom field should be updated (which is not true for any realtionship-based sumfields).
+   * So to make this work, we hijack and emulate select parts of sumfields logic:
+   *  a. _msumfields_generate_data_based_on_current_data(), our own version of 
+   *    sumfields_generate_data_based_on_current_data()
+   *  b. calling _msumfields_generate_data_based_on_current_data() via 
+   *    apiwrappers hook, so it always happens when the API gendata is called.
+   *  c. calling _msumfields_generate_data_based_on_current_data() via 
+   *    postProcess hook, so it happens (as needed ) when the Sumfields form is 
+   *    submitted.
+   * To make all this happen, we define special values in array properties named 
+   * 'msumfields_*', which are ignored by sumfields, but are specifically
+   * handled by _msumfields_generate_data_based_on_current_data() and
+   * msumfields_civicrm_triggerInfo().
+   */
+
+  $custom['fields']['relatedcontrib_this_fiscal_year'] = array(
+    'label' => msumfields_ts('Related contact contributions this fiscal year'),
+    'data_type' => 'Money',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '32',
+    'trigger_sql' => 
+    // NOTE: We want something as low-resource-usage as possible, since we'll
+    // not be using this value at all. Array properties named 'msumfields_*'
+    // will be used to define the "real" triggers.
+    '
+      (
+      SELECT 1
+      )
+    ',
+    'trigger_table' => 'civicrm_contribution',
+    'msumfields_trigger_sql' => _msumfields_sql_rewrite('
+      (
+        SELECT
+          coalesce(sum(cont1.total_amount), 0)
+        FROM
+          civicrm_relationship r
+          INNER JOIN civicrm_contribution cont1
+        WHERE
+          r.is_active
+          AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          AND (
+            (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id)
+            OR
+            (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id)
+          )
+          AND CAST(cont1.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
+      )
+    '),
+    'msumfields_matchtable' => 'civicrm_contact',
+    'msumfields_matchcolumn' => 'id',
+    'msumfields_extra' => array(
+      array(
+        'trigger_table' => 'civicrm_relationship',
+        'entity_column' => 'contact_id_a',
+        'trigger_sql' => _msumfields_sql_rewrite('
+          (
+            SELECT
+              coalesce(sum(cont1.total_amount), 0)
+            FROM
+              civicrm_relationship r
+              INNER JOIN civicrm_contribution cont1
+            WHERE
+              r.is_active
+              AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+              AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+              AND (
+                (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
+                OR
+                (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_a)
+              )
+              AND CAST(cont1.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
+          )
+        '),
+      ),
+      array(
+        'trigger_table' => 'civicrm_relationship',
+        'entity_column' => 'contact_id_b',
+        'trigger_sql' => _msumfields_sql_rewrite('
+          (
+            SELECT
+              coalesce(sum(cont1.total_amount), 0)
+            FROM
+              civicrm_relationship r
+              INNER JOIN civicrm_contribution cont1
+            WHERE
+              r.is_active
+              AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+              AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+              AND (
+                (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
+                OR
+                (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_b)
+              )
+              AND CAST(cont1.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
+            )
+        '),
+      ),
+    ),
+    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+  );
+
+  // Define a new optgroup fieldset, to contain our Related Contributions fields
+  // and options.
+  $custom['optgroups']['relatedcontrib'] = array(
+    'title' => 'Related Contribution Fields',
+    'fieldset' => 'Related Contributions',
     'component' => 'CiviContribute',
   );
 }
@@ -326,9 +485,253 @@ function msumfields_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   ));
   _msumfields_civix_navigationMenu($menu);
   } // */
+
+/**
+ * Wrapper for ts() to save me some typing.
+ * @param string $text The text to translate.
+ * @param array $params Any replacement parameters.
+ * @return string The translated string.
+ */
 function msumfields_ts($text, $params = array()) {
   if (!array_key_exists('domain', $params)) {
     $params['domain'] = 'com.joineryhq.msumfields';
   }
   return ts($text, $params);
+}
+
+function msumfields_civicrm_triggerInfo(&$info, $tableName) {
+  if (!CRM_Msumfields_Upgrader::checkDependency('net.ourpowerbase.sumfields')) {
+    // If sumfields is not enabled, don't define any of our own triggers, since
+    // they'll then rely on (non-existent) custom fields.
+    return;
+  }
+
+  // If any enabled fields have 'msumfields_extra' defined, formulate
+  // a trigger for them and add to $info.
+  // Our triggers all use custom fields. CiviCRM, when generating
+  // custom fields, sometimes gives them different names (appending
+  // the id in most cases) to avoid name collisions.
+  //
+  // So, we have to retrieve the actual name of each field that is in
+  // use.
+  $table_name = _sumfields_get_custom_table_name();
+  $custom_fields = _sumfields_get_custom_field_parameters();
+
+  // Load the field and group definitions because we need the trigger
+  // clause that is stored here.
+  // Only get msumfields definitions.
+  $custom = array();
+  msumfields_civicrm_sumfields_definitions($custom);
+
+  // We create a trigger sql statement for each table that should
+  // have a trigger
+  $tables = array();
+  $generic_sql = "INSERT INTO `$table_name` SET ";
+  $sql_field_parts = array();
+
+  $active_fields = sumfields_get_setting('active_fields', array());
+
+  $session = CRM_Core_Session::singleton();
+  $info = array();
+  $triggers = array();
+  // Iterate over all our fields, and build out a sql parts array
+  foreach ($custom_fields as $base_column_name => $params) {
+    if (
+      !in_array($base_column_name, $active_fields) || empty($custom['fields'][$base_column_name]['msumfields_extra'])
+    ) {
+      continue;
+    }
+    foreach ($custom['fields'][$base_column_name]['msumfields_extra'] as $extra) {
+      $table = $extra['trigger_table'];
+      if (empty($triggers[$table])) {
+        $triggers[$table] = '';
+      }
+
+      if (!is_null($tableName) && $tableName != $table) {
+        // if triggerInfo is called with a particular table name, we should
+        // only respond if we are contributing triggers to that table.
+        continue;
+      }
+      $trigger = sumfields_sql_rewrite($extra['trigger_sql']);
+      // If we fail to properly rewrite the sql, don't set the trigger
+      // to avoid sql exceptions.
+      if (FALSE === $trigger) {
+        $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
+        $session->setStatus($msg);
+        continue;
+      }
+      $sql_field_parts[$table] = "`{$params['column_name']}` = {$trigger}";
+
+      $parts[$table] = array($sql_field_parts[$table]);
+      $parts[$table][] = 'entity_id = NEW.' . $extra['entity_column'];
+
+      $extra_sql = implode(',', $parts[$table]);
+      $triggers[$table] .= $generic_sql . $extra_sql . ' ON DUPLICATE KEY UPDATE ' . $extra_sql . ";\n";
+    }
+  }
+  
+  foreach ($triggers as $table => $sql) {
+    // We want to fire this trigger on insert, update and delete.
+    $info[] = array(
+      'table' => $table,
+      'when' => 'AFTER',
+      'event' => 'INSERT',
+      'sql' => $sql,
+    );
+    $info[] = array(
+      'table' => $table,
+      'when' => 'AFTER',
+      'event' => 'UPDATE',
+      'sql' => $sql,
+    );
+    // For delete, we reference OLD.field instead of NEW.field
+    $sql = str_replace('NEW.', 'OLD.', $sql);
+    $info[] = array(
+      'table' => $table,
+      'when' => 'AFTER',
+      'event' => 'DELETE',
+      'sql' => $sql,
+    );
+  }
+}
+
+/**
+ * Get all available relationship types; a simple wrapper around the CiviCRM API.
+ * 
+ * @return array Suitable for a select field.
+ */
+function _msumfields_get_all_relationship_types() {
+  $relationshipTypes = array();
+  $result = civicrm_api3('relationshipType', 'get', array(
+    'options' => array(
+      'limit' => 0,
+    ),
+  ));
+  foreach ($result['values'] as $value) {
+    if (empty($value['name_a_b'])) {
+      continue;
+    }
+    $relationshipTypes[$value['id']] = "{$value['label_a_b']}/{$value['label_b_a']}";
+  }
+  return $relationshipTypes;
+}
+
+/**
+ * Replace msumfields %variables with the appropriate values. NOTE: this function 
+ * does NOT call msumfields_sql_rewrite().
+ * 
+ * @return string Modified $sql.
+ */
+function _msumfields_sql_rewrite($sql) {
+  // Note: most of these token replacements fill in a sql IN statement,
+  // e.g. field_name IN (%token). That means if the token is empty, we
+  // get a SQL error. So... for each of these, if the token is empty,
+  // we fill it with all possible values at the moment. If a new option
+  // is added, summary fields will have to be re-configured.
+  $ids = sumfields_get_setting('msumfields_relatedcontrib_relationship_type_ids', array());
+  if (count($ids) == 0) {
+    $ids = array_keys(_msumfields_get_all_relationship_types());
+  }
+  $str_ids = implode(',', $ids);
+  $sql = str_replace('%msumfields_relatedcontrib_relationship_type_ids', $str_ids, $sql);
+
+  $ids = sumfields_get_setting('msumfields_relatedcontrib_financial_type_ids', array());
+  if (count($ids) == 0) {
+    $ids = array_keys(sumfields_get_all_financial_types());
+  }
+  $str_ids = implode(',', $ids);
+  $sql = str_replace('%msumfields_relatedcontrib_financial_type_ids', $str_ids, $sql);
+
+  return $sql;
+}
+
+/**
+ * Define our own triggers, as needed (some msumfields, such as the "Related 
+ * Contributions" group, aren't fully supported by sumfields, so we do the extra 
+ * work here.
+ * 
+ * Copied and modified from sumfields_generate_data_based_on_current_data().
+ * 
+ * Generate calculated fields for all contacts.
+ * This function is designed to be run once when
+ * the extension is installed or initialized.
+ *
+ * @param CRM_Core_Session $session
+ * @return bool
+ *   TRUE if successful, FALSE otherwise
+ */
+function _msumfields_generate_data_based_on_current_data($session = NULL) {
+  // Get the actual table name for summary fields.
+  $table_name = _sumfields_get_custom_table_name();
+
+  // These are the summary field definitions as they have been instantiated
+  // on this site (with actual column names, etc.)
+  $custom_fields = _sumfields_get_custom_field_parameters();
+
+  if (is_null($session)) {
+    $session = CRM_Core_Session::singleton();
+  }
+  if (empty($table_name)) {
+    $session::setStatus(ts("Your configuration may be corrupted. Please disable and renable this extension."), ts('Error'), 'error');
+    return FALSE;
+  }
+
+  // Load the field and group definitions because we need the msumfields_trigger_sql
+  // clause that is stored here.
+  // Only get msumfields definitions.
+  $custom = array();
+  msumfields_civicrm_sumfields_definitions($custom);
+
+  $active_fields = sumfields_get_setting('active_fields', array());
+
+  // Variables used for building the temp tables and temp insert statement.
+  $temp_sql = array();
+
+  foreach($custom_fields as $base_column_name => $params) {
+    // For this to work, we need several specific configuraton bits, so just
+    // skip to the next custom_field if they're not all defined.
+    if (
+      !in_array($base_column_name, $active_fields) 
+      || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql']) 
+      || empty($custom['fields'][$base_column_name]['msumfields_matchtable']) 
+      || empty($custom['fields'][$base_column_name]['msumfields_matchcolumn'])
+    ) {
+      continue;
+    }
+    
+    // Define shorthand variables for relevant values.
+    $table = $custom['fields'][$base_column_name]['trigger_table'];
+    $trigger = $custom['fields'][$base_column_name]['msumfields_trigger_sql'];
+    $matchtable = $custom['fields'][$base_column_name]['msumfields_matchtable'];
+    $matchcolumn = $custom['fields'][$base_column_name]['msumfields_matchcolumn'];
+    
+    // We replace NEW.contact_id with t2.contact_id to reflect the difference
+    // between the trigger sql statement and the initial sql statement
+    // to load the data.
+    $trigger = str_replace('NEW.contact_id', "t2.{$matchcolumn}", $trigger);
+    if (FALSE === $trigger = sumfields_sql_rewrite($trigger)) {
+      $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
+      $session->setStatus($msg);
+      continue;
+    }
+
+    $temp_table = sumfields_create_temporary_table($table);
+
+    // Calculate data and insert into temp table
+    $query = "INSERT INTO `{$temp_table}` SELECT t2.$matchcolumn, "
+      . $trigger
+      . " FROM `$matchtable` AS t2 "
+      . "JOIN civicrm_contact AS c ON t2.{$matchcolumn} = c.id "
+      . "GROUP BY t2.{$matchcolumn}";
+    CRM_Core_DAO::executeQuery($query);
+
+    // Move temp data into custom field table
+    $query = "INSERT INTO `$table_name` "
+      . "(entity_id, {$params['column_name']})"
+      . "(SELECT contact_id, {$base_column_name} FROM `{$temp_table}`) "
+      . "ON DUPLICATE KEY UPDATE `{$params['column_name']}` = `$base_column_name`";
+    CRM_Core_DAO::executeQuery($query);
+  }
+
+  return TRUE;
 }

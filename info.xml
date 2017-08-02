@@ -22,6 +22,6 @@
   </compatibility>
   <comments>Initial development sponsored by McKenzie River Gathering Foundation.</comments>
   <civix>
-    <namespace>CRM/Jsumfields</namespace>
+    <namespace>CRM/Msumfields</namespace>
   </civix>
 </extension>
