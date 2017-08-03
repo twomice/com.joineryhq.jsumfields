@@ -255,7 +255,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'trigger_table' => 'civicrm_contribution',
     'msumfields_trigger_sql_base' => '
       (
-      select contact_id_a as contact_id, sum(total_amount) as total from
+      select contact_id_a as contact_id, coalesce(sum(total_amount),0) as total from
         (
           select
             contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contact_id as donor_contact_id
@@ -351,7 +351,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'trigger_table' => 'civicrm_contribution',
     'msumfields_trigger_sql_base' => '
       (
-      select contact_id_a as contact_id, sum(total_amount) as total from
+      select contact_id_a as contact_id, coalesce(sum(total_amount),0) as total from
         (
           select
             contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contact_id as donor_contact_id
@@ -381,8 +381,6 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
         ON (NEW.contact_id IN (r.contact_id_a, r.contact_id_b))
         AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
     ',
-    'msumfields_matchtable' => 'civicrm_contact',
-    'msumfields_matchcolumn' => 'id',
     'msumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -449,7 +447,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'trigger_table' => 'civicrm_contribution',
     'msumfields_trigger_sql_base' => '
       (
-      select contact_id_a as contact_id, sum(total_amount) as total from
+      select contact_id_a as contact_id, coalesce(sum(total_amount), 0) as total from
         (
           select
             contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contact_id as donor_contact_id
@@ -479,8 +477,6 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
         ON (NEW.contact_id IN (r.contact_id_a, r.contact_id_b))
         AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
     ',
-    'msumfields_matchtable' => 'civicrm_contact',
-    'msumfields_matchcolumn' => 'id',
     'msumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -547,7 +543,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'trigger_table' => 'civicrm_contribution',
     'msumfields_trigger_sql_base' => '
       (
-      select contact_id_a as contact_id, sum(total_amount) as total from
+      select contact_id_a as contact_id, coalesce(sum(total_amount),0) as total from
         (
           select
             contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contact_id as donor_contact_id
@@ -619,6 +615,139 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_b)
               )
             )
+        '),
+      ),
+    ),
+    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+  );
+
+  $custom['fields']['relatedcontrib_plusme_this_fiscal_year'] = array(
+    'label' => msumfields_ts('Combined contact & related contact contributions this fiscal year'),
+    'data_type' => 'Money',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '32',
+    'trigger_sql' =>
+    // NOTE: We want something as low-resource-usage as possible, since we'll
+    // not be using this value at all. Array properties named 'msumfields_*'
+    // will be used to define the "real" triggers. So just use an empty string
+    // here.
+    '0',
+    'trigger_table' => 'civicrm_contribution',
+    'msumfields_trigger_sql_base' => '
+      (
+        select contact_id_a as contact_id, coalesce(sum(total_amount)) as total from
+          (
+            select
+              contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount
+            from
+              civicrm_relationship r
+              inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+            UNION
+            select
+              contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount
+            from
+              civicrm_relationship r
+              inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+            UNION
+            select ctrb.contact_id, 0 as relationship_type_id, 1 as is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount
+              from civicrm_contribution ctrb
+          ) t
+          where
+            t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids, 0)
+            and t.is_active
+            and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+            AND CAST(t.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
+          group by contact_id_a
+      )
+    ',
+    'msumfields_trigger_sql_base_alias' => 't',
+    'msumfields_trigger_sql_entity_alias' => 'contact_id',
+    'msumfields_trigger_sql_value_alias' => 'total',
+    'msumfields_trigger_sql_limiter' => '
+      WHERE
+        t.contact_id = NEW.contact_id OR t.contact_id in (
+          SELECT
+            if(contact_id_a = NEW.contact_id, contact_id_b, contact_id_a)
+          FROM
+            civicrm_relationship
+          WHERE
+            NEW.contact_id in (contact_id_a, contact_id_b)
+            AND is_active
+            AND relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+        )
+    ',
+    'msumfields_extra' => array(
+      array(
+        'trigger_table' => 'civicrm_relationship',
+        'entity_column' => 'contact_id_a',
+        'trigger_sql' => _msumfields_sql_rewrite('
+          (
+            SELECT
+              coalesce(sum(total_amount), 0)
+            FROM
+            (
+              select cont1.total_amount
+              from
+                civicrm_relationship r
+                INNER JOIN civicrm_contribution cont1
+              WHERE
+                r.is_active
+                AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND (
+                  (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
+                  OR
+                  (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_a)
+                )
+                AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
+              UNION
+              SELECT
+                total_amount
+              FROM
+                civicrm_contribution
+              WHERE
+                contact_id = NEW.contact_id_a
+                AND financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND YEAR(CAST(receive_date AS DATE)) = YEAR(CURDATE())
+            ) t
+          )
+        '),
+      ),
+      array(
+        'trigger_table' => 'civicrm_relationship',
+        'entity_column' => 'contact_id_b',
+        'trigger_sql' => _msumfields_sql_rewrite('
+          (
+            SELECT
+              coalesce(sum(total_amount), 0)
+            FROM
+            (
+              select cont1.total_amount
+              from
+                civicrm_relationship r
+                INNER JOIN civicrm_contribution cont1
+              WHERE
+                r.is_active
+                AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND (
+                  (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
+                  OR
+                  (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_b)
+                )
+                AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
+              UNION
+              SELECT
+                total_amount
+              FROM
+                civicrm_contribution
+              WHERE
+                contact_id = NEW.contact_id_b
+                AND financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND YEAR(CAST(receive_date AS DATE)) = YEAR(CURDATE())
+            ) t
+          )
         '),
       ),
     ),
