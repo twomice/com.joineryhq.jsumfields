@@ -250,34 +250,42 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'trigger_sql' =>
     // NOTE: We want something as low-resource-usage as possible, since we'll
     // not be using this value at all. Array properties named 'msumfields_*'
-    // will be used to define the "real" triggers.
-    '
+    // will be used to define the "real" triggers. So just use an empty string
+    // here.
+    '""',
+    'trigger_table' => 'civicrm_contribution',
+    'msumfields_trigger_sql_base' => '
       (
-      SELECT 1
+      select contact_id_a as contact_id, sum(total_amount) as total from
+        (
+          select
+            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contact_id as donor_contact_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+          UNION
+          select
+            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contact_id as donor_contact_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+        ) t
+        where
+          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          and t.is_active
+          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          AND CAST(t.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
+        group by contact_id_a
       )
     ',
-    'trigger_table' => 'civicrm_contribution',
-    'msumfields_trigger_sql' => _msumfields_sql_rewrite('
-      (
-        SELECT
-          coalesce(sum(cont1.total_amount), 0)
-        FROM
-          civicrm_relationship r
-          INNER JOIN civicrm_contribution cont1
-        WHERE
-          r.is_active
-          AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-          AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
-          AND (
-            (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id)
-            OR
-            (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id)
-          )
-          AND CAST(cont1.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
-      )
-    '),
-    'msumfields_matchtable' => 'civicrm_contact',
-    'msumfields_matchcolumn' => 'id',
+    'msumfields_trigger_sql_base_alias' => 't',
+    'msumfields_trigger_sql_entity_alias' => 'contact_id',
+    'msumfields_trigger_sql_value_alias' => 'total',
+    'msumfields_trigger_sql_limiter' => '
+      INNER JOIN civicrm_relationship r
+        ON (NEW.contact_id IN (r.contact_id_a, r.contact_id_b))
+        AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
+    ',
     'msumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -338,32 +346,42 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'trigger_sql' =>
     // NOTE: We want something as low-resource-usage as possible, since we'll
     // not be using this value at all. Array properties named 'msumfields_*'
-    // will be used to define the "real" triggers.
-    '
+    // will be used to define the "real" triggers. So just use an empty string
+    // here.
+    '""',
+    'trigger_table' => 'civicrm_contribution',
+    'msumfields_trigger_sql_base' => '
       (
-      SELECT 1
+      select contact_id_a as contact_id, sum(total_amount) as total from
+        (
+          select
+            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contact_id as donor_contact_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+          UNION
+          select
+            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contact_id as donor_contact_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+        ) t
+        where
+          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          and t.is_active
+          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          AND YEAR(CAST(t.receive_date AS DATE)) = YEAR(CURDATE())
+        group by contact_id_a
       )
     ',
-    'trigger_table' => 'civicrm_contribution',
-    'msumfields_trigger_sql' => _msumfields_sql_rewrite('
-      (
-        SELECT
-          coalesce(sum(cont1.total_amount), 0)
-        FROM
-          civicrm_relationship r
-          INNER JOIN civicrm_contribution cont1
-        WHERE
-          r.is_active
-          AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-          AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
-          AND (
-            (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id)
-            OR
-            (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id)
-          )
-          AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
-      )
-    '),
+    'msumfields_trigger_sql_base_alias' => 't',
+    'msumfields_trigger_sql_entity_alias' => 'contact_id',
+    'msumfields_trigger_sql_value_alias' => 'total',
+    'msumfields_trigger_sql_limiter' => '
+      INNER JOIN civicrm_relationship r
+        ON (NEW.contact_id IN (r.contact_id_a, r.contact_id_b))
+        AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
+    ',
     'msumfields_matchtable' => 'civicrm_contact',
     'msumfields_matchcolumn' => 'id',
     'msumfields_extra' => array(
@@ -410,6 +428,104 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_b)
               )
               AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
+            )
+        '),
+      ),
+    ),
+    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+  );
+
+  $custom['fields']['relatedcontrib_last_calendar_year'] = array(
+    'label' => msumfields_ts('Related contact contributions last calendar year'),
+    'data_type' => 'Money',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '32',
+    'trigger_sql' =>
+    // NOTE: We want something as low-resource-usage as possible, since we'll
+    // not be using this value at all. Array properties named 'msumfields_*'
+    // will be used to define the "real" triggers. So just use an empty string
+    // here.
+    '""',
+    'trigger_table' => 'civicrm_contribution',
+    'msumfields_trigger_sql_base' => '
+      (
+      select contact_id_a as contact_id, sum(total_amount) as total from
+        (
+          select
+            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contact_id as donor_contact_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+          UNION
+          select
+            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contact_id as donor_contact_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+        ) t
+        where
+          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          and t.is_active
+          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          AND YEAR(CAST(t.receive_date AS DATE)) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
+        group by contact_id_a
+      )
+    ',
+    'msumfields_trigger_sql_base_alias' => 't',
+    'msumfields_trigger_sql_entity_alias' => 'contact_id',
+    'msumfields_trigger_sql_value_alias' => 'total',
+    'msumfields_trigger_sql_limiter' => '
+      INNER JOIN civicrm_relationship r
+        ON (NEW.contact_id IN (r.contact_id_a, r.contact_id_b))
+        AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
+    ',
+    'msumfields_matchtable' => 'civicrm_contact',
+    'msumfields_matchcolumn' => 'id',
+    'msumfields_extra' => array(
+      array(
+        'trigger_table' => 'civicrm_relationship',
+        'entity_column' => 'contact_id_a',
+        'trigger_sql' => _msumfields_sql_rewrite('
+          (
+            SELECT
+              coalesce(sum(cont1.total_amount), 0)
+            FROM
+              civicrm_relationship r
+              INNER JOIN civicrm_contribution cont1
+            WHERE
+              r.is_active
+              AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+              AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+              AND (
+                (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
+                OR
+                (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_a)
+              )
+              AND YEAR(CAST(receive_date AS DATE)) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
+          )
+        '),
+      ),
+      array(
+        'trigger_table' => 'civicrm_relationship',
+        'entity_column' => 'contact_id_b',
+        'trigger_sql' => _msumfields_sql_rewrite('
+          (
+            SELECT
+              coalesce(sum(cont1.total_amount), 0)
+            FROM
+              civicrm_relationship r
+              INNER JOIN civicrm_contribution cont1
+            WHERE
+              r.is_active
+              AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+              AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+              AND (
+                (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
+                OR
+                (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_b)
+              )
+              AND YEAR(CAST(receive_date AS DATE)) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
             )
         '),
       ),
@@ -620,41 +736,85 @@ function msumfields_civicrm_triggerInfo(&$info, $tableName) {
   $active_fields = sumfields_get_setting('active_fields', array());
 
   $session = CRM_Core_Session::singleton();
-  $info = array();
   $triggers = array();
   // Iterate over all our fields, and build out a sql parts array
   foreach ($custom_fields as $base_column_name => $params) {
-    if (
-      !in_array($base_column_name, $active_fields) || empty($custom['fields'][$base_column_name]['msumfields_extra'])
-    ) {
+    if (!in_array($base_column_name, $active_fields)) {
       continue;
     }
-    foreach ($custom['fields'][$base_column_name]['msumfields_extra'] as $extra) {
-      $table = $extra['trigger_table'];
-      if (empty($triggers[$table])) {
-        $triggers[$table] = '';
-      }
 
-      if (!is_null($tableName) && $tableName != $table) {
+    // Set up variables to add triggers for msumfields_extra.
+    if (!empty($custom['fields'][$base_column_name]['msumfields_extra'])) {
+      foreach ($custom['fields'][$base_column_name]['msumfields_extra'] as $extra) {
+        $table = $extra['trigger_table'];
+        if (empty($triggers[$table])) {
+          $triggers[$table] = '';
+        }
+
+        if (!is_null($tableName) && $tableName != $table) {
+          // if triggerInfo is called with a particular table name, we should
+          // only respond if we are contributing triggers to that table.
+          continue;
+        }
+        $trigger = sumfields_sql_rewrite($extra['trigger_sql']);
+        // If we fail to properly rewrite the sql, don't set the trigger
+        // to avoid sql exceptions.
+        if (FALSE === $trigger) {
+          $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
+          $session->setStatus($msg);
+          continue;
+        }
+        $sql_field_parts[$table] = "`{$params['column_name']}` = {$trigger}";
+
+        $parts[$table] = array($sql_field_parts[$table]);
+        $parts[$table][] = 'entity_id = NEW.' . $extra['entity_column'];
+
+        $extra_sql = implode(',', $parts[$table]);
+        $triggers[$table] .= $generic_sql . $extra_sql . ' ON DUPLICATE KEY UPDATE ' . $extra_sql . ";\n";
+      }
+    }
+
+    // Set up variables to add triggers for msumfields_trigger_sql_base.
+    if (
+      !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_base'])
+      && !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_base_alias'])
+      && !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_limiter'])
+      && !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias'])
+      && !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias'])
+    ) {
+      $table = $custom['fields'][$base_column_name]['trigger_table'];
+
+      if (empty($tableName) || $tableName == $table) {
         // if triggerInfo is called with a particular table name, we should
         // only respond if we are contributing triggers to that table.
-        continue;
-      }
-      $trigger = sumfields_sql_rewrite($extra['trigger_sql']);
-      // If we fail to properly rewrite the sql, don't set the trigger
-      // to avoid sql exceptions.
-      if (FALSE === $trigger) {
-        $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
-        $session->setStatus($msg);
-        continue;
-      }
-      $sql_field_parts[$table] = "`{$params['column_name']}` = {$trigger}";
+        if (empty($triggers[$table])) {
+          $triggers[$table] = '';
+        }
 
-      $parts[$table] = array($sql_field_parts[$table]);
-      $parts[$table][] = 'entity_id = NEW.' . $extra['entity_column'];
+        $baseAlias = $custom['fields'][$base_column_name]['msumfields_trigger_sql_base_alias'];
+        $trigger = "
+          INSERT INTO `$table_name` (entity_id, `{$params['column_name']}`)
+          SELECT
+            {$baseAlias}.{$custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias']},
+            {$baseAlias}.{$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
+          FROM
+            ({$custom['fields'][$base_column_name]['msumfields_trigger_sql_base']}) {$baseAlias}
+          {$custom['fields'][$base_column_name]['msumfields_trigger_sql_limiter']}
+          ON DUPLICATE KEY UPDATE `{$params['column_name']}` = {$baseAlias}.{$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
+        ";
 
-      $extra_sql = implode(',', $parts[$table]);
-      $triggers[$table] .= $generic_sql . $extra_sql . ' ON DUPLICATE KEY UPDATE ' . $extra_sql . ";\n";
+        $trigger = sumfields_sql_rewrite(_msumfields_sql_rewrite($trigger));
+
+        // If we fail to properly rewrite the sql, don't set the trigger
+        // to avoid sql exceptions.
+        if (FALSE === $trigger) {
+          $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
+          $session->setStatus($msg);
+        }
+        else {
+          $triggers[$table] .= "{$trigger};\n";
+        }
+      }
     }
   }
 
@@ -764,8 +924,8 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
     return FALSE;
   }
 
-  // Load the field and group definitions because we need the msumfields_trigger_sql
-  // clause that is stored here.
+  // Load the field and group definitions because we need the msumfields_trigger_sql_*
+  // properties that are stored here.
   // Only get msumfields definitions.
   $custom = array();
   msumfields_civicrm_sumfields_definitions($custom);
@@ -778,71 +938,45 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
   foreach ($custom_fields as $base_column_name => $params) {
     // For this to work, we need several specific configuraton bits, so just
     // skip to the next custom_field if they're not all defined.
+    // NOTE: msumfields makes fewer assumptions about its trigger configurations
+    // than sumfields, and so is less efficient; specifically, we don't assume
+    // that every field amounts to one value for each entity. E.g., In the case
+    // of Related Contributions, a change in one contribution can result in new
+    // values for several related contacts. Thus, treating the trigger sql as
+    // a sub-select column (which amounts to one row per entity) is insufficient.
+    // Therefore, we lose the efficiency of using a single query to determine
+    // all custom field values, and must calculate each of ours individually.
     if (
       !in_array($base_column_name, $active_fields)
-      || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql'])
-      || empty($custom['fields'][$base_column_name]['msumfields_matchtable'])
-      || empty($custom['fields'][$base_column_name]['msumfields_matchcolumn'])
+      || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_base'])
+      || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias'])
+      || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias'])
     ) {
       continue;
     }
 
     // Define shorthand variables for relevant values.
     $table = $custom['fields'][$base_column_name]['trigger_table'];
-    $trigger = $custom['fields'][$base_column_name]['msumfields_trigger_sql'];
-    $matchtable = $custom['fields'][$base_column_name]['msumfields_matchtable'];
-    $matchcolumn = $custom['fields'][$base_column_name]['msumfields_matchcolumn'];
+    $triggerBase = $custom['fields'][$base_column_name]['msumfields_trigger_sql_base'];
 
-    // We replace NEW.contact_id with t2.contact_id to reflect the difference
-    // between the trigger sql statement and the initial sql statement
-    // to load the data.
-    $trigger = str_replace('NEW.contact_id', "t2.{$matchcolumn}", $trigger);
-    if (FALSE === $trigger = sumfields_sql_rewrite($trigger)) {
+    $updateQuery = "
+      INSERT INTO `$table_name` (entity_id, `{$params['column_name']}`)
+      SELECT
+        {$custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias']},
+        {$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
+      FROM
+        ({$custom['fields'][$base_column_name]['msumfields_trigger_sql_base']}) t
+      ON DUPLICATE KEY UPDATE `{$params['column_name']}` = {$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
+    ";
+
+    $updateQuery = sumfields_sql_rewrite(_msumfields_sql_rewrite($updateQuery));
+
+    if (FALSE === $updateQuery) {
       $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
       $session->setStatus($msg);
       continue;
     }
-
-    if (!isset($temp_sql[$table])) {
-      $temp_sql[$table] = array(
-        'temp_table' => sumfields_create_temporary_table($table),
-        'matchtable' => $matchtable,
-        'matchcolumn' => $matchcolumn,
-        'triggers' => array(),
-        'map' => array(),
-      );
-    }
-    $temp_sql[$table]['triggers'][$base_column_name] = $trigger;
-    $temp_sql[$table]['map'][$base_column_name] = $params['column_name'];
-  }
-
-  if (empty($temp_sql)) {
-    // Is this an error? Not sure. But it will be an error if we let this
-    // function continue - it will produce a broken sql statement, so we
-    // short circuit here.
-    $session::setStatus(ts("Not regenerating content, no fields defined."), ts('Error'), 'error');
-    return TRUE;
-  }
-
-  foreach ($temp_sql as $table => $data) {
-    // Calculate data and insert into temp table
-    $query = "INSERT INTO `{$data['temp_table']}` SELECT t2.{$data['matchcolumn']}, "
-      . implode(",\n", $data['triggers'])
-      . " FROM `{$data['matchtable']}` AS t2 "
-      . "JOIN civicrm_contact AS c ON t2.{$data['matchcolumn']} = c.id "
-      . "GROUP BY t2.{$data['matchcolumn']}";
-    CRM_Core_DAO::executeQuery($query);
-
-    // Move temp data into custom field table
-    $query = "INSERT INTO `$table_name` "
-      . "(entity_id, " . implode(',', $data['map']) . ") "
-      . "(SELECT contact_id, " . implode(',', array_keys($data['map'])) . " FROM `{$data['temp_table']}`) "
-      . "ON DUPLICATE KEY UPDATE ";
-    foreach ($data['map'] as $tmp => $val) {
-      $query .= " $val = $tmp,";
-    }
-    $query = rtrim($query, ',');
-    CRM_Core_DAO::executeQuery($query);
+    CRM_Core_DAO::executeQuery($updateQuery);
   }
 
   return TRUE;
