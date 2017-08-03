@@ -28,6 +28,7 @@ This extension currently provides the following fields:
 * CiviContribute/Relationship: Combined contact & related contact contributions last fiscal year
 * CiviContribute/Relationship: Combined contact & related contact contributions last calendar year
 * CiviContribute/Relationship: Combined contact & related contact contributions all time
+* CiviEvents: Date of the first attended event
 
 Development is under way to provide these fields:
 
@@ -37,5 +38,4 @@ Development is under way to provide these fields:
 * CiviGrant: Total number of grants received
 * CiviGrant: Total $ in grants received
 * CiviGrant: Grant types received
-* CiviEvents: Date of the first attended event
 

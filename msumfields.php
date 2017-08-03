@@ -58,12 +58,34 @@ function msumfields_civicrm_postProcess($formName, &$form) {
  * values.
  */
 function msumfields_civicrm_sumfields_definitions(&$custom) {
+  dsm($custom);
   // Adjust some labels in summary fields to be more explicit.
   $custom['fields']['contribution_total_this_year']['label'] = msumfields_ts('Total Contributions this Fiscal Year');
   $custom['fields']['contribution_total_last_year']['label'] = msumfields_ts('Total Contributions last Fiscal Year');
   $custom['fields']['contribution_total_year_before_last']['label'] = msumfields_ts('Total Contributions Fiscal Year Before Last');
   $custom['fields']['soft_total_this_year']['label'] = msumfields_ts('Total Soft Credits this Fiscal Year');
 
+  $custom['fields']['event_first_attended_date'] = array(
+    'label' => msumfields_ts('Date of the first attended event'),
+    'data_type' => 'Date',
+    'html_type' => 'Select Date',
+    'weight' => '71',
+    'text_length' => '32',
+    'trigger_sql' => '(
+      SELECT 
+        e.start_date AS summary_value 
+      FROM civicrm_participant t1 
+        JOIN civicrm_event e ON t1.event_id = e.id 
+      WHERE 
+        t1.contact_id = NEW.contact_id 
+        AND t1.status_id IN (%participant_status_ids)
+        AND e.event_type_id IN (%event_type_ids) 
+      ORDER BY start_date ASC LIMIT 1
+    )',
+    'trigger_table' => 'civicrm_participant',
+    'optgroup' => 'event_standard',    
+  );
+  
   $custom['fields']['contribution_total_this_calendar_year'] = array(
     'label' => msumfields_ts('Total Contributions this Calendar Year'),
     'data_type' => 'Money',
