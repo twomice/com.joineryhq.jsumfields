@@ -58,8 +58,10 @@ function msumfields_civicrm_postProcess($formName, &$form) {
     sumfields_save_setting('msumfields_grant_status_ids', $form->_submitValues['msumfields_grant_status_ids']);
     sumfields_save_setting('msumfields_grant_type_ids', $form->_submitValues['msumfields_grant_type_ids']);
 
-    // Update our own trigger data, as needed.
-    _msumfields_generate_data_based_on_current_data();
+    if ($form->_submitValues['when_to_apply_change'] == 'on_submit') {
+      // Update our own trigger data, as needed.
+      _msumfields_generate_data_based_on_current_data();
+    }
   }
 }
 
