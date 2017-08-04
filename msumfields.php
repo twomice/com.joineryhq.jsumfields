@@ -85,8 +85,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'optgroup' => 'event_standard',
   );
 
-  $custom['fields']['mail_ctr_alltime'] = array(
-    'label' => msumfields_ts('Click through rate all time'),
+  $custom['fields']['mail_openrate_alltime'] = array(
+    'label' => msumfields_ts('Open rate rate all time'),
     'data_type' => 'Float',
     'html_type' => 'Text',
     'weight' => '71',
