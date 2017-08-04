@@ -105,7 +105,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
             -- total mailings sent to contact
             SELECT q.contact_id, count(*) as sent
             FROM
-              civicrm_mailing_event_queue q 
+              civicrm_mailing_event_queue q
               INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q.id
             WHERE
               1
@@ -291,7 +291,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     ),
     'optgroup' => 'civimail',
   );
-  
+
   $custom['fields']['mail_openrate_last12months'] = array(
     'label' => msumfields_ts('Open rate rate last 12 months'),
     'data_type' => 'Float',
@@ -2053,7 +2053,7 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
 
         $triggerSql = CRM_Utils_Array::value('trigger_sql', $extra);
         $customTriggerTableName = CRM_Utils_Array::value('trigger_table', $extra);
-        
+
         if (empty($triggerSql) || empty($customTriggerTableName)) {
           // This extra trigger is not fully defined, so just skip it.
           continue;
@@ -2105,7 +2105,7 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
 
         $baseAlias = $custom['fields'][$base_column_name]['msumfields_trigger_sql_base_alias'];
         $triggerLimiter = CRM_Utils_Array::value('msumfields_trigger_sql_limiter', $custom['fields'][$base_column_name]);
-        
+
         $trigger = "
           INSERT INTO `$sumfieldsCustomTableName` (entity_id, `{$params['column_name']}`)
           SELECT
@@ -2156,12 +2156,12 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
       'sql' => $sql,
     );
   }
-  
+
   foreach ($info as $id => $triggerInfo) {
     /*
-     * This table exists as a dummy, for complicated reasons. See comments in 
+     * This table exists as a dummy, for complicated reasons. See comments in
      * sql/auto_install. In short we need it as a dummy, but we don't actually
-     * want any triggers on it. So remove any triggers that may have been 
+     * want any triggers on it. So remove any triggers that may have been
      * defined for it.
      */
     if ($triggerInfo['table'] == 'civicrm_msumfields_placeholder') {
@@ -2286,7 +2286,7 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
           || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias'])
           || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias'])
         )
-      ) 
+      )
     ) {
       continue;
     }
@@ -2311,7 +2311,7 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
 
       $updateQuery = sumfields_sql_rewrite(_msumfields_sql_rewrite($updateQuery));
     }
-    
+
     if (FALSE === $updateQuery) {
       $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
       $session->setStatus($msg);
