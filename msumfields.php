@@ -3,6 +3,15 @@
 require_once 'msumfields.civix.php';
 
 /**
+  * Implements hook_civicrm_apiWrappers().
+  */
+function msumfields_civicrm_apiWrappers(&$wrappers, $apiRequest) {
+  if (strtolower($apiRequest['entity']) == 'sumfields' && strtolower($apiRequest['action']) == 'gendata') {
+    $wrappers[] = new CRM_Msumfields_APIWrapperSumfieldsGendata();
+  }
+}
+
+/**
  * Implements hook_civicrm_buildForm().
  */
 function msumfields_civicrm_buildForm($formName, &$form) {
