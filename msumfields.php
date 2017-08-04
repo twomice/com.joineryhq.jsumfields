@@ -1018,11 +1018,32 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' =>
-    // NOTE: We want something as low-resource-usage as possible, since we'll
-    // not be using this value at all. Array properties named 'msumfields_*'
-    // will be used to define the "real" triggers. So just use 0 here.
-    '0',
+    'trigger_sql' => _msumfields_sql_rewrite('
+    (
+      select coalesce(sum(total_amount),0) as total from
+        (
+          select
+            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+          UNION
+          select
+            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+        ) t
+        where
+          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          and t.is_active
+          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          AND CAST(t.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
+          AND t.contribution_status_id = 1
+          AND contact_id_a = NEW.contact_id
+        group by contact_id_a
+      )
+    '),
     'trigger_table' => 'civicrm_contribution',
     'msumfields_trigger_sql_base' => '
       (
@@ -1122,12 +1143,32 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' =>
-    // NOTE: We want something as low-resource-usage as possible, since we'll
-    // not be using this value at all. Array properties named 'msumfields_*'
-    // will be used to define the "real" triggers. So just use an empty string
-    // here.
-    '0',
+    'trigger_sql' => _msumfields_sql_rewrite('
+    (
+      select coalesce(sum(total_amount),0) as total from
+        (
+          select
+            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+          UNION
+          select
+            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+        ) t
+        where
+          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          and t.is_active
+          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          AND YEAR(CAST(t.receive_date AS DATE)) = YEAR(CURDATE())
+          AND t.contribution_status_id = 1
+          AND contact_id_a = NEW.contact_id
+        group by contact_id_a
+      )
+    '),
     'trigger_table' => 'civicrm_contribution',
     'msumfields_trigger_sql_base' => '
       (
@@ -1228,12 +1269,32 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' =>
-    // NOTE: We want something as low-resource-usage as possible, since we'll
-    // not be using this value at all. Array properties named 'msumfields_*'
-    // will be used to define the "real" triggers. So just use an empty string
-    // here.
-    '0',
+    'trigger_sql' => _msumfields_sql_rewrite('
+    (
+      select coalesce(sum(total_amount),0) as total from
+        (
+          select
+            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+          UNION
+          select
+            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+        ) t
+        where
+          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          and t.is_active
+          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          AND YEAR(CAST(t.receive_date AS DATE)) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
+          AND t.contribution_status_id = 1
+          AND contact_id_a = NEW.contact_id
+        group by contact_id_a
+      )
+    '),
     'trigger_table' => 'civicrm_contribution',
     'msumfields_trigger_sql_base' => '
       (
@@ -1333,12 +1394,31 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' =>
-    // NOTE: We want something as low-resource-usage as possible, since we'll
-    // not be using this value at all. Array properties named 'msumfields_*'
-    // will be used to define the "real" triggers. So just use an empty string
-    // here.
-    '0',
+    'trigger_sql' => _msumfields_sql_rewrite('
+    (
+      select coalesce(sum(total_amount),0) as total from
+        (
+          select
+            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+          UNION
+          select
+            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+        ) t
+        where
+          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          and t.is_active
+          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          AND t.contribution_status_id = 1
+          AND contact_id_a = NEW.contact_id
+        group by contact_id_a
+      )
+    '),
     'trigger_table' => 'civicrm_contribution',
     'msumfields_trigger_sql_base' => '
       (
@@ -2333,7 +2413,7 @@ function msumfields_ts($text, $params = array()) {
 function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
   if (!CRM_Msumfields_Upgrader::checkDependency('net.ourpowerbase.sumfields')) {
     // If sumfields is not enabled, don't define any of our own triggers, since
-    // they'll then rely on (non-existent) custom fields.
+    // any custom fields they point at are now non-existent.
     return;
   }
 
