@@ -58,7 +58,6 @@ function msumfields_civicrm_postProcess($formName, &$form) {
  * values.
  */
 function msumfields_civicrm_sumfields_definitions(&$custom) {
-  dsm($custom);
   // Adjust some labels in summary fields to be more explicit.
   $custom['fields']['contribution_total_this_year']['label'] = msumfields_ts('Total Contributions this Fiscal Year');
   $custom['fields']['contribution_total_last_year']['label'] = msumfields_ts('Total Contributions last Fiscal Year');
@@ -92,68 +91,64 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'html_type' => 'Text',
     'weight' => '71',
     'text_length' => '255',
+    'trigger_table' => 'civicrm_msumfields_placeholder',
     'trigger_sql' => '""',
-    'msumfields_trigger_sql_base' => '(
-      SELECT
-        s.contact_id, coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100 as rate
-      FROM
-      (
-        -- total mailings sent to contact
-        SELECT r.contact_id, count(*) as sent
+    'msumfields_update_sql' => '
+      INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+        SELECT t.contact_id, t.rate
         FROM
-          civicrm_mailing_job j
-          INNER JOIN civicrm_mailing m ON m.id = j.mailing_id
-          INNER JOIN civicrm_mailing_recipients r
-            ON r.mailing_id = m.id
-        WHERE
-          r.email_id
-          AND r.contact_id = NEW.contact_id -- MSUMFIELDS_LINE_TRIGGER_ONLY
-          -- AND j.start_date is whatever
-        GROUP BY
-          r.contact_id
-      ) s
-      LEFT JOIN (
-        -- total mailings opened
-        SELECT q.contact_id, coalesce(count(distinct q.contact_id, q.id), 0) as opened
-        FROM
-          civicrm_mailing m
-          INNER JOIN civicrm_mailing_job j ON j.mailing_id = m.id
-          INNER JOIN civicrm_mailing_recipients r ON r.mailing_id = m.id
-          INNER JOIN civicrm_mailing_event_queue q ON q.job_id = j.id AND q.contact_id = r.contact_id
-          INNER JOIN civicrm_mailing_event_opened o ON o.event_queue_id = q.id
-        WHERE
-          r.email_id
-          AND r.contact_id = NEW.contact_id -- MSUMFIELDS_LINE_TRIGGER_ONLY
-          -- AND j.start_date is whatever
-        group by q.contact_id, q.id
-      ) o ON o.contact_id = s.contact_id
-      LEFT JOIN (
-        -- total mailings bounced
-        SELECT q.contact_id, coalesce(count(distinct q.contact_id, q.id), 0) as bounced
-        FROM
-          civicrm_mailing m
-          INNER JOIN civicrm_mailing_job j ON j.mailing_id = m.id
-          INNER JOIN civicrm_mailing_recipients r ON r.mailing_id = m.id
-          INNER JOIN civicrm_mailing_event_queue q ON q.job_id = j.id AND q.contact_id = r.contact_id
-          INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q.id
-        WHERE
-          r.email_id
-          AND r.contact_id = NEW.contact_id -- MSUMFIELDS_LINE_TRIGGER_ONLY
-          -- AND j.start_date is whatever
-        group by q.contact_id, q.id
-      ) b ON b.contact_id = s.contact_id
-    )',
-    'msumfields_trigger_sql_base_alias' => 't',
-    'msumfields_trigger_sql_entity_alias' => 'contact_id',
-    'msumfields_trigger_sql_value_alias' => 'rate',
-    'msumfields_trigger_sql_limiter' => '',
-    'trigger_table' => 'civicrm_mailing_recipients',
+          (
+          SELECT
+            s.contact_id, coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100 as rate
+          FROM
+          (
+            -- total mailings sent to contact
+            SELECT q2.contact_id, count(*) as sent
+            FROM
+              civicrm_mailing_event_queue q1
+              INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+              INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
+            WHERE
+              1
+              -- AND j.start_date is whatever
+            GROUP BY
+              q2.contact_id
+          ) s
+          LEFT JOIN (
+            -- total mailings opened
+            SELECT q2.contact_id, count(*) as opened
+            FROM
+              civicrm_mailing_event_queue q1
+              INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+              INNER JOIN civicrm_mailing_event_opened o ON o.event_queue_id = q2.id
+            WHERE
+              1
+              -- AND j.start_date is whatever
+            GROUP BY
+              q2.contact_id
+          ) o ON o.contact_id = s.contact_id
+          LEFT JOIN (
+            -- total mailings bounced
+            SELECT q2.contact_id, count(*) as bounced
+            FROM
+              civicrm_mailing_event_queue q1
+              INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+              INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
+            WHERE
+              1
+              -- AND j.start_date is whatever
+            GROUP BY
+              q2.contact_id
+          ) b ON b.contact_id = s.contact_id
+        ) t
+      ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+    ',
     'msumfields_extra' => array(
       array(
-        'trigger_table' => 'civicrm_mailing_event_bounce',
+        'trigger_table' => 'civicrm_mailing_event_delivered',
         'trigger_sql' => '
           INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
-              SELECT t.contact_id, t.total
+              SELECT t.contact_id, t.rate
               FROM
                 (
                 SELECT
@@ -161,53 +156,151 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 FROM
                 (
                   -- total mailings sent to contact
-                  SELECT r.contact_id, count(*) as sent
+                  SELECT q2.contact_id, count(*) as sent
                   FROM
-                    civicrm_mailing_event_queue q
-                    INNER JOIN civicrm_mailing_job j ON j.id = q.job_id
-                    INNER JOIN civicrm_mailing m ON m.id = j.mailing_id
-                    INNER JOIN civicrm_mailing_recipients r
-                      ON r.mailing_id = m.id
-                      AND r.contact_id = q.contact_id
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
                   WHERE
-                    r.email_id
-                    AND q.id = NEW.event_queue_id
+                    q1.id = NEW.event_queue_id
                     -- AND j.start_date is whatever
                   GROUP BY
-                    r.contact_id
+                    q2.contact_id
                 ) s
                 LEFT JOIN (
                   -- total mailings opened
-                  SELECT q.contact_id, coalesce(count(distinct q.contact_id, q.id), 0) as opened
+                  SELECT q2.contact_id, count(*) as opened
                   FROM
-                    civicrm_mailing_job j
-                    INNER JOIN civicrm_mailing m ON j.mailing_id = m.id
-                    INNER JOIN civicrm_mailing_recipients r ON r.mailing_id = m.id
-                    INNER JOIN civicrm_mailing_event_queue q ON q.job_id = j.id AND q.contact_id = r.contact_id
-                    INNER JOIN civicrm_mailing_event_opened o ON o.event_queue_id = q.id
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_opened o ON o.event_queue_id = q2.id
                   WHERE
-                    r.email_id
-                    AND q.id = NEW.event_queue_id
+                    q1.id = NEW.event_queue_id
                     -- AND j.start_date is whatever
-                  group by q.contact_id, q.id
+                  GROUP BY
+                    q2.contact_id
                 ) o ON o.contact_id = s.contact_id
                 LEFT JOIN (
                   -- total mailings bounced
-                  SELECT q.contact_id, coalesce(count(distinct q.contact_id, q.id), 0) as bounced
+                  SELECT q2.contact_id, count(*) as bounced
                   FROM
-                    civicrm_mailing_job j
-                    INNER JOIN civicrm_mailing m ON j.mailing_id = m.id
-                    INNER JOIN civicrm_mailing_recipients r ON r.mailing_id = m.id
-                    INNER JOIN civicrm_mailing_event_queue q ON q.job_id = j.id AND q.contact_id = r.contact_id
-                    INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q.id
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
                   WHERE
-                    r.email_id
-                    AND q.id = NEW.event_queue_id
+                    q1.id = NEW.event_queue_id
                     -- AND j.start_date is whatever
-                  group by q.contact_id, q.id
+                  GROUP BY
+                    q2.contact_id
                 ) b ON b.contact_id = s.contact_id
               ) t
-            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+        ',
+      ),
+      array(
+        'trigger_table' => 'civicrm_mailing_event_bounce',
+        'trigger_sql' => '
+          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+              SELECT t.contact_id, t.rate
+              FROM
+                (
+                SELECT
+                  s.contact_id, coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100 as rate
+                FROM
+                (
+                  -- total mailings sent to contact
+                  SELECT q2.contact_id, count(*) as sent
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                    -- AND j.start_date is whatever
+                  GROUP BY
+                    q2.contact_id
+                ) s
+                LEFT JOIN (
+                  -- total mailings opened
+                  SELECT q2.contact_id, count(*) as opened
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_opened o ON o.event_queue_id = q2.id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                    -- AND j.start_date is whatever
+                  GROUP BY
+                    q2.contact_id
+                ) o ON o.contact_id = s.contact_id
+                LEFT JOIN (
+                  -- total mailings bounced
+                  SELECT q2.contact_id, count(*) as bounced
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                    -- AND j.start_date is whatever
+                  GROUP BY
+                    q2.contact_id
+                ) b ON b.contact_id = s.contact_id
+              ) t
+            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+        ',
+      ),
+      array(
+        'trigger_table' => 'civicrm_mailing_event_opened',
+        'trigger_sql' => '
+          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+              SELECT t.contact_id, t.rate
+              FROM
+                (
+                SELECT
+                  s.contact_id, coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100 as rate
+                FROM
+                (
+                  -- total mailings sent to contact
+                  SELECT q2.contact_id, count(*) as sent
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                    -- AND j.start_date is whatever
+                  GROUP BY
+                    q2.contact_id
+                ) s
+                LEFT JOIN (
+                  -- total mailings opened
+                  SELECT q2.contact_id, count(*) as opened
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_opened o ON o.event_queue_id = q2.id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                    -- AND j.start_date is whatever
+                  GROUP BY
+                    q2.contact_id
+                ) o ON o.contact_id = s.contact_id
+                LEFT JOIN (
+                  -- total mailings bounced
+                  SELECT q2.contact_id, count(*) as bounced
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                    -- AND j.start_date is whatever
+                  GROUP BY
+                    q2.contact_id
+                ) b ON b.contact_id = s.contact_id
+              ) t
+            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
         ',
       ),
     ),
@@ -1744,7 +1837,15 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
     // Set up variables to add triggers for msumfields_extra.
     if (!empty($custom['fields'][$base_column_name]['msumfields_extra'])) {
       foreach ($custom['fields'][$base_column_name]['msumfields_extra'] as $extra) {
-        $customTriggerTableName = $extra['trigger_table'];
+
+        $triggerSql = CRM_Utils_Array::value('trigger_sql', $extra);
+        $customTriggerTableName = CRM_Utils_Array::value('trigger_table', $extra);
+        
+        if (empty($triggerSql) || empty($customTriggerTableName)) {
+          // This extra trigger is not fully defined, so just skip it.
+          continue;
+        }
+
         if (empty($triggers[$customTriggerTableName])) {
           $triggers[$customTriggerTableName] = '';
         }
@@ -1755,7 +1856,7 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
           continue;
         }
 
-        $trigger = _msumfields_sql_rewrite_with_custom_params($extra['trigger_sql'], $params['column_name'], $sumfieldsCustomTableName);
+        $trigger = _msumfields_sql_rewrite_with_custom_params($triggerSql, $params['column_name'], $sumfieldsCustomTableName);
         $trigger = sumfields_sql_rewrite(_msumfields_sql_rewrite($trigger));
 
         // If we fail to properly rewrite the sql, don't set the trigger
@@ -1776,7 +1877,6 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
     if (
       !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_base'])
       && !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_base_alias'])
-      && !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_limiter'])
       && !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias'])
       && !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias'])
     ) {
@@ -1791,6 +1891,8 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
         }
 
         $baseAlias = $custom['fields'][$base_column_name]['msumfields_trigger_sql_base_alias'];
+        $triggerLimiter = CRM_Utils_Array::value('msumfields_trigger_sql_limiter', $custom['fields'][$base_column_name]);
+        
         $trigger = "
           INSERT INTO `$sumfieldsCustomTableName` (entity_id, `{$params['column_name']}`)
           SELECT
@@ -1798,7 +1900,7 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
             {$baseAlias}.{$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
           FROM
             ({$triggerSqlBase}) {$baseAlias}
-          {$custom['fields'][$base_column_name]['msumfields_trigger_sql_limiter']}
+          {$triggerLimiter}
           ON DUPLICATE KEY UPDATE `{$params['column_name']}` = {$baseAlias}.{$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
         ";
 
@@ -1817,7 +1919,6 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
       }
     }
   }
-dsm($triggers, 'triggers');
 
   foreach ($triggers as $customTriggerTableName => $sql) {
     // We want to fire this trigger on insert, update and delete.
@@ -1841,6 +1942,18 @@ dsm($triggers, 'triggers');
       'event' => 'DELETE',
       'sql' => $sql,
     );
+  }
+  
+  foreach ($info as $id => $triggerInfo) {
+    /*
+     * This table exists as a dummy, for complicated reasons. See comments in 
+     * sql/auto_install. In short we need it as a dummy, but we don't actually
+     * want any triggers on it. So remove any triggers that may have been 
+     * defined for it.
+     */
+    if ($triggerInfo['table'] == 'civicrm_msumfields_placeholder') {
+      unset($info[$id]);
+    }
   }
 }
 
@@ -1911,7 +2024,7 @@ function _msumfields_sql_rewrite($sql) {
  */
 function _msumfields_generate_data_based_on_current_data($session = NULL) {
   // Get the actual table name for summary fields.
-  $table_name = _sumfields_get_custom_table_name();
+  $sumfieldsCustomTableName = _sumfields_get_custom_table_name();
 
   // These are the summary field definitions as they have been instantiated
   // on this site (with actual column names, etc.)
@@ -1920,7 +2033,7 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
   if (is_null($session)) {
     $session = CRM_Core_Session::singleton();
   }
-  if (empty($table_name)) {
+  if (empty($sumfieldsCustomTableName)) {
     $session::setStatus(ts("Your configuration may be corrupted. Please disable and renable this extension."), ts('Error'), 'error');
     return FALSE;
   }
@@ -1948,30 +2061,44 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
     // Therefore, we lose the efficiency of using a single query to determine
     // all custom field values, and must calculate each of ours individually.
     if (
+      // If the field is not enabled.
       !in_array($base_column_name, $active_fields)
-      || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_base'])
-      || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias'])
-      || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias'])
+      ||
+      (
+        // The full update query is not defined.
+        empty($custom['fields'][$base_column_name]['msumfields_update_sql'])
+        // If any of the query-building attributes are undefined.
+        && (
+          empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_base'])
+          || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias'])
+          || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias'])
+        )
+      ) 
     ) {
       continue;
     }
 
-    // Define shorthand variables for relevant values.
-    $table = $custom['fields'][$base_column_name]['trigger_table'];
-    $triggerBase = _msumfields_strip_nontrigger_lines($custom['fields'][$base_column_name]['msumfields_trigger_sql_base']);
+    if (!empty($custom['fields'][$base_column_name]['msumfields_update_sql'])) {
+      $updateQuery = _msumfields_sql_rewrite_with_custom_params($custom['fields'][$base_column_name]['msumfields_update_sql'], $params['column_name'], $sumfieldsCustomTableName);
+    }
+    else {
+      // Define shorthand variables for relevant values.
+      $table = $custom['fields'][$base_column_name]['trigger_table'];
+      $triggerBase = _msumfields_strip_nontrigger_lines($custom['fields'][$base_column_name]['msumfields_trigger_sql_base']);
 
-    $updateQuery = "
-      INSERT INTO `$table_name` (entity_id, `{$params['column_name']}`)
-      SELECT
-        {$custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias']},
-        {$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
-      FROM
-        ({$triggerBase}) t
-      ON DUPLICATE KEY UPDATE `{$params['column_name']}` = {$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
-    ";
+      $updateQuery = "
+        INSERT INTO `$sumfieldsCustomTableName` (entity_id, `{$params['column_name']}`)
+        SELECT
+          {$custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias']},
+          {$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
+        FROM
+          ({$triggerBase}) t
+        ON DUPLICATE KEY UPDATE `{$params['column_name']}` = {$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
+      ";
 
-    $updateQuery = sumfields_sql_rewrite(_msumfields_sql_rewrite($updateQuery));
-
+      $updateQuery = sumfields_sql_rewrite(_msumfields_sql_rewrite($updateQuery));
+    }
+    
     if (FALSE === $updateQuery) {
       $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
       $session->setStatus($msg);

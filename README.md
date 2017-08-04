@@ -29,13 +29,13 @@ This extension currently provides the following fields:
 * CiviContribute/Relationship: Combined contact & related contact contributions last calendar year
 * CiviContribute/Relationship: Combined contact & related contact contributions all time
 * CiviEvents: Date of the first attended event
-
 * CiviMail: CiviMail open rate (all time)
-* CiviMail: CiviMail open rate (last 12 months)
-* CiviMail: CiviMail click-through rate
+
 
 
 Development is under way to provide these fields:
+* CiviMail: CiviMail open rate (last 12 months)
+* CiviMail: CiviMail click-through rate
 
 * CiviGrant: Total number of grants received
 * CiviGrant: Total $ in grants received
