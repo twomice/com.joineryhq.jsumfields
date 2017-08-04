@@ -35,3 +35,13 @@ This extension currently provides the following fields:
 * CiviGrant: Total number of grants received
 * CiviGrant: Total $ in grants received
 * CiviGrant: Grant types received
+
+## Installation
+The Summary Fields extension **must** already be installed before installling 
+this extension. If they are installed in the reverse order, you'll find that some
+of this extension's summary fields will frequently revert to "0". To fix this,
+you can take these steps at any time:
+
+1. Disable the "More Summary Fields" extension.
+2. Uninstall the "More Summary Fields" extension.
+3. Enable the "More Summary Fields" extension.

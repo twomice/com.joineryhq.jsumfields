@@ -1045,40 +1045,42 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'msumfields_trigger_sql_base' => '
-      (
-      select contact_id_a as contact_id, coalesce(sum(total_amount),0) as total from
-        (
-          select
-            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
-          from
-            civicrm_relationship r
-            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION
-          select
-            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
-          from
-            civicrm_relationship r
-            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
-        ) t
-        where
-          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-          and t.is_active
-          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
-          AND CAST(t.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
-          AND t.contribution_status_id = 1
-        group by contact_id_a
-      )
-    ',
-    'msumfields_trigger_sql_base_alias' => 't',
-    'msumfields_trigger_sql_entity_alias' => 'contact_id',
-    'msumfields_trigger_sql_value_alias' => 'total',
-    'msumfields_trigger_sql_limiter' => '
-      INNER JOIN civicrm_relationship r
-        ON (NEW.contact_id IN (r.contact_id_a, r.contact_id_b))
-        AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
-    ',
     'msumfields_extra' => array(
+      array(
+        'trigger_table' => 'civicrm_contribution',
+        'trigger_sql' => '
+          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+            SELECT t.contact_id, t.total
+            FROM
+            (
+              select contact_id_a as contact_id, coalesce(sum(total_amount),0) as total from
+                (
+                  select
+                    contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+                  from
+                    civicrm_relationship r
+                    inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+                  UNION
+                  select
+                    contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+                  from
+                    civicrm_relationship r
+                    inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+                ) t
+              where
+                t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                and t.is_active
+                and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND CAST(t.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
+                AND t.contribution_status_id = 1
+              group by contact_id_a
+            ) t
+            INNER JOIN civicrm_relationship r
+              ON (NEW.contact_id IN (r.contact_id_a, r.contact_id_b))
+              AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
+          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+        '
+      ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
@@ -1170,41 +1172,42 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'msumfields_trigger_sql_base' => '
-      (
-      select contact_id_a as contact_id, coalesce(sum(total_amount),0) as total from
-        (
-          select
-            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
-
-          from
-            civicrm_relationship r
-            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION
-          select
-            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
-          from
-            civicrm_relationship r
-            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
-        ) t
-        where
-          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-          and t.is_active
-          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
-          AND YEAR(CAST(t.receive_date AS DATE)) = YEAR(CURDATE())
-          AND t.contribution_status_id = 1
-        group by contact_id_a
-      )
-    ',
-    'msumfields_trigger_sql_base_alias' => 't',
-    'msumfields_trigger_sql_entity_alias' => 'contact_id',
-    'msumfields_trigger_sql_value_alias' => 'total',
-    'msumfields_trigger_sql_limiter' => '
-      INNER JOIN civicrm_relationship r
-        ON (NEW.contact_id IN (r.contact_id_a, r.contact_id_b))
-        AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
-    ',
     'msumfields_extra' => array(
+      array(
+        'trigger_table' => 'civicrm_contribution',
+        'trigger_sql' => '
+          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+            SELECT t.contact_id, t.total
+            FROM
+            (
+              select contact_id_a as contact_id, coalesce(sum(total_amount),0) as total from
+                (
+                  select
+                    contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+                  from
+                    civicrm_relationship r
+                    inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+                  UNION
+                  select
+                    contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+                  from
+                    civicrm_relationship r
+                    inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+                ) t
+              where
+                t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                and t.is_active
+                and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND YEAR(CAST(t.receive_date AS DATE)) = YEAR(CURDATE())
+                AND t.contribution_status_id = 1
+              group by contact_id_a
+            ) t
+            INNER JOIN civicrm_relationship r
+              ON (NEW.contact_id IN (r.contact_id_a, r.contact_id_b))
+              AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
+          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+        '
+      ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
@@ -1296,40 +1299,42 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'msumfields_trigger_sql_base' => '
-      (
-      select contact_id_a as contact_id, coalesce(sum(total_amount), 0) as total from
-        (
-          select
-            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
-          from
-            civicrm_relationship r
-            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION
-          select
-            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
-          from
-            civicrm_relationship r
-            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
-        ) t
-        where
-          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-          and t.is_active
-          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
-          AND YEAR(CAST(t.receive_date AS DATE)) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
-          AND t.contribution_status_id = 1
-        group by contact_id_a
-      )
-    ',
-    'msumfields_trigger_sql_base_alias' => 't',
-    'msumfields_trigger_sql_entity_alias' => 'contact_id',
-    'msumfields_trigger_sql_value_alias' => 'total',
-    'msumfields_trigger_sql_limiter' => '
-      INNER JOIN civicrm_relationship r
-        ON (NEW.contact_id IN (r.contact_id_a, r.contact_id_b))
-        AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
-    ',
     'msumfields_extra' => array(
+      array(
+        'trigger_table' => 'civicrm_contribution',
+        'trigger_sql' => '
+          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+            SELECT t.contact_id, t.total
+            FROM
+            (
+              select contact_id_a as contact_id, coalesce(sum(total_amount),0) as total from
+                (
+                  select
+                    contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+                  from
+                    civicrm_relationship r
+                    inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+                  UNION
+                  select
+                    contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+                  from
+                    civicrm_relationship r
+                    inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+                ) t
+              where
+                t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                and t.is_active
+                and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND YEAR(CAST(t.receive_date AS DATE)) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
+                AND t.contribution_status_id = 1
+              group by contact_id_a
+            ) t
+            INNER JOIN civicrm_relationship r
+              ON (NEW.contact_id IN (r.contact_id_a, r.contact_id_b))
+              AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
+          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+        '
+      ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
@@ -1453,6 +1458,40 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
         AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
     ',
     'msumfields_extra' => array(
+      array(
+        'trigger_table' => 'civicrm_contribution',
+        'trigger_sql' => '
+          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+            SELECT t.contact_id, t.total
+            FROM
+            (
+              select contact_id_a as contact_id, coalesce(sum(total_amount),0) as total from
+                (
+                  select
+                    contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+                  from
+                    civicrm_relationship r
+                    inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+                  UNION
+                  select
+                    contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+                  from
+                    civicrm_relationship r
+                    inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+                ) t
+              where
+                t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                and t.is_active
+                and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND t.contribution_status_id = 1
+              group by contact_id_a
+            ) t
+            INNER JOIN civicrm_relationship r
+              ON (NEW.contact_id IN (r.contact_id_a, r.contact_id_b))
+              AND if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) = t.contact_id
+          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+        '
+      ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
@@ -2833,54 +2872,19 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
   $temp_sql = array();
 
   foreach ($custom_fields as $base_column_name => $params) {
-    // For this to work, we need several specific configuraton bits, so just
-    // skip to the next custom_field if they're not all defined.
-    // NOTE: msumfields makes fewer assumptions about its trigger configurations
-    // than sumfields, and so is less efficient; specifically, we don't assume
-    // that every field amounts to one value for each entity. E.g., In the case
-    // of Related Contributions, a change in one contribution can result in new
-    // values for several related contacts. Thus, treating the trigger sql as
-    // a sub-select column (which amounts to one row per entity) is insufficient.
-    // Therefore, we lose the efficiency of using a single query to determine
-    // all custom field values, and must calculate each of ours individually.
     if (
       // If the field is not enabled.
-      !in_array($base_column_name, $active_fields)
+      !in_array($base_column_name, $active_fields) 
       ||
-      (
-        // The full update query is not defined.
-        empty($custom['fields'][$base_column_name]['msumfields_update_sql'])
-        // If any of the query-building attributes are undefined.
-        && (
-          empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_base'])
-          || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias'])
-          || empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias'])
-        )
-      )
+      // The full update query is not defined.
+      empty($custom['fields'][$base_column_name]['msumfields_update_sql'])
     ) {
       continue;
     }
-
-    if (!empty($custom['fields'][$base_column_name]['msumfields_update_sql'])) {
-      $updateQuery = _msumfields_sql_rewrite_with_custom_params($custom['fields'][$base_column_name]['msumfields_update_sql'], $params['column_name'], $sumfieldsCustomTableName);
-    }
-    else {
-      // Define shorthand variables for relevant values.
-      $table = $custom['fields'][$base_column_name]['trigger_table'];
-      $triggerBase = _msumfields_strip_nontrigger_lines($custom['fields'][$base_column_name]['msumfields_trigger_sql_base']);
-
-      $updateQuery = "
-        INSERT INTO `$sumfieldsCustomTableName` (entity_id, `{$params['column_name']}`)
-        SELECT
-          {$custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias']},
-          {$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
-        FROM
-          ({$triggerBase}) t
-        ON DUPLICATE KEY UPDATE `{$params['column_name']}` = {$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
-      ";
-
-      $updateQuery = sumfields_sql_rewrite(_msumfields_sql_rewrite($updateQuery));
-    }
+    
+    $updateQuery = _msumfields_sql_rewrite_with_custom_params($custom['fields'][$base_column_name]['msumfields_update_sql'], $params['column_name'], $sumfieldsCustomTableName);
+    $updateQuery = _msumfields_sql_rewrite($updateQuery);
+    $updateQuery = sumfields_sql_rewrite($updateQuery);
 
     if (FALSE === $updateQuery) {
       $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
