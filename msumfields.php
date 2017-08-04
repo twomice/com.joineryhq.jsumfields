@@ -99,7 +99,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
         FROM
           (
           SELECT
-            s.contact_id, coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100 as rate
+            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
           FROM
           (
             -- total mailings sent to contact
@@ -146,7 +146,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100 as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -196,7 +196,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100 as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -246,7 +246,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100 as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -306,7 +306,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
         FROM
           (
           SELECT
-            s.contact_id, coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100 as rate
+            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
           FROM
           (
             -- total mailings sent to contact
@@ -362,7 +362,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100 as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -418,7 +418,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100 as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -471,7 +471,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100 as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -509,6 +509,222 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   WHERE
                     q1.id = NEW.event_queue_id
                     AND j.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+                  GROUP BY
+                    q2.contact_id
+                ) b ON b.contact_id = s.contact_id
+              ) t
+            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+        ',
+      ),
+    ),
+    'optgroup' => 'civimail',
+  );
+
+  $custom['fields']['mail_clickrate_alltime'] = array(
+    'label' => msumfields_ts('Open click-through rate all time'),
+    'data_type' => 'Float',
+    'html_type' => 'Text',
+    'weight' => '71',
+    'text_length' => '255',
+    'trigger_table' => 'civicrm_msumfields_placeholder',
+    'trigger_sql' => '""',
+    'msumfields_update_sql' => '
+      INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+        SELECT t.contact_id, t.rate
+        FROM
+          (
+          SELECT
+            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+          FROM
+          (
+            -- total mailings sent to contact
+            SELECT q2.contact_id, count(*) as sent
+            FROM
+              civicrm_mailing_event_queue q1
+              INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+              INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
+              INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
+            WHERE
+              1
+            GROUP BY
+              q2.contact_id
+          ) s
+          LEFT JOIN (
+            -- total traackable urls opened
+            SELECT q2.contact_id, count(*) as opened
+            FROM
+              civicrm_mailing_event_queue q1
+              INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+              INNER JOIN civicrm_mailing_event_trackable_url_open o ON o.event_queue_id = q2.id
+              INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
+            WHERE
+              1
+            GROUP BY
+              q2.contact_id
+          ) o ON o.contact_id = s.contact_id
+          LEFT JOIN (
+            -- total mailings bounced
+            SELECT q2.contact_id, count(*) as bounced
+            FROM
+              civicrm_mailing_event_queue q1
+              INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+              INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
+              INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
+            WHERE
+              1
+            GROUP BY
+              q2.contact_id
+          ) b ON b.contact_id = s.contact_id
+        ) t
+      ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+    ',
+    'msumfields_extra' => array(
+      array(
+        'trigger_table' => 'civicrm_mailing_event_delivered',
+        'trigger_sql' => '
+          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+              SELECT t.contact_id, t.rate
+              FROM
+                (
+                SELECT
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                FROM
+                (
+                  -- total mailings sent to contact
+                  SELECT q2.contact_id, count(*) as sent
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
+                    INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                  GROUP BY
+                    q2.contact_id
+                ) s
+                LEFT JOIN (
+                  -- total traackable urls opened
+                  SELECT q2.contact_id, count(*) as opened
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_trackable_url_open o ON o.event_queue_id = q2.id
+                    INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                  GROUP BY
+                    q2.contact_id
+                ) o ON o.contact_id = s.contact_id
+                LEFT JOIN (
+                  -- total mailings bounced
+                  SELECT q2.contact_id, count(*) as bounced
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
+                    INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                  GROUP BY
+                    q2.contact_id
+                ) b ON b.contact_id = s.contact_id
+              ) t
+            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+        ',
+      ),
+      array(
+        'trigger_table' => 'civicrm_mailing_event_bounce',
+        'trigger_sql' => '
+          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+              SELECT t.contact_id, t.rate
+              FROM
+                (
+                SELECT
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                FROM
+                (
+                  -- total mailings sent to contact
+                  SELECT q2.contact_id, count(*) as sent
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                  GROUP BY
+                    q2.contact_id
+                ) s
+                LEFT JOIN (
+                  -- total traackable urls opened
+                  SELECT q2.contact_id, count(*) as opened
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_trackable_url_open o ON o.event_queue_id = q2.id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                  GROUP BY
+                    q2.contact_id
+                ) o ON o.contact_id = s.contact_id
+                LEFT JOIN (
+                  -- total mailings bounced
+                  SELECT q2.contact_id, count(*) as bounced
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                  GROUP BY
+                    q2.contact_id
+                ) b ON b.contact_id = s.contact_id
+              ) t
+            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+        ',
+      ),
+      array(
+        'trigger_table' => 'civicrm_mailing_event_trackable_url_open',
+        'trigger_sql' => '
+          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+              SELECT t.contact_id, t.rate
+              FROM
+                (
+                SELECT
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                FROM
+                (
+                  -- total mailings sent to contact
+                  SELECT q2.contact_id, count(*) as sent
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                  GROUP BY
+                    q2.contact_id
+                ) s
+                LEFT JOIN (
+                  -- total traackable urls opened
+                  SELECT q2.contact_id, count(*) as opened
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_trackable_url_open o ON o.event_queue_id = q2.id
+                  WHERE
+                    q1.id = NEW.event_queue_id
+                  GROUP BY
+                    q2.contact_id
+                ) o ON o.contact_id = s.contact_id
+                LEFT JOIN (
+                  -- total mailings bounced
+                  SELECT q2.contact_id, count(*) as bounced
+                  FROM
+                    civicrm_mailing_event_queue q1
+                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
+                    INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
+                  WHERE
+                    q1.id = NEW.event_queue_id
                   GROUP BY
                     q2.contact_id
                 ) b ON b.contact_id = s.contact_id
