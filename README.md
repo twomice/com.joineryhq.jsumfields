@@ -32,10 +32,6 @@ This extension currently provides the following fields:
 * CiviMail: CiviMail open rate (all time)
 * CiviMail: CiviMail open rate (last 12 months)
 * CiviMail: CiviMail click-through rate (all time)
-
-Development is under way to provide these fields:
-
 * CiviGrant: Total number of grants received
 * CiviGrant: Total $ in grants received
 * CiviGrant: Grant types received
-

@@ -25,10 +25,22 @@ function msumfields_civicrm_buildForm($formName, &$form) {
     $form->add('select', 'msumfields_relatedcontrib_relationship_type_ids', $label, _msumfields_get_all_relationship_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
     $fieldsets[$custom['optgroups']['relatedcontrib']['fieldset']]['msumfields_relatedcontrib_relationship_type_ids'] = msumfields_ts('Relationship types to be used when calculating Related Contribution summary fields.');
 
+    // Create a field for Grant Status on grant fields.
+    $label = msumfields_ts('Grant Statuses');
+    $form->add('select', 'msumfields_grant_status_ids', $label, _msumfields_get_all_grant_statuses(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $fieldsets[$custom['optgroups']['civigrant']['fieldset']]['msumfields_grant_status_ids'] = msumfields_ts('Grant statuses to be used when calculating Grant fields.');
+
+    // Create a field for Grant Type on grant fields.
+    $label = msumfields_ts('Grant Types');
+    $form->add('select', 'msumfields_grant_type_ids', $label, _msumfields_get_all_grant_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $fieldsets[$custom['optgroups']['civigrant']['fieldset']]['msumfields_grant_type_ids'] = msumfields_ts('Grant types to be used when calculating Grant fields.');
+
     // Set defaults.
     $form->setDefaults(array(
       'msumfields_relatedcontrib_financial_type_ids' => sumfields_get_setting('msumfields_relatedcontrib_financial_type_ids'),
       'msumfields_relatedcontrib_relationship_type_ids' => sumfields_get_setting('msumfields_relatedcontrib_relationship_type_ids'),
+      'msumfields_grant_status_ids' => sumfields_get_setting('msumfields_grant_status_ids'),
+      'msumfields_grant_type_ids' => sumfields_get_setting('msumfields_grant_type_ids'),
     ));
 
     $form->assign('fieldsets', $fieldsets);
@@ -43,8 +55,10 @@ function msumfields_civicrm_postProcess($formName, &$form) {
     // Save option fields as submitted.
     sumfields_save_setting('msumfields_relatedcontrib_financial_type_ids', $form->_submitValues['msumfields_relatedcontrib_financial_type_ids']);
     sumfields_save_setting('msumfields_relatedcontrib_relationship_type_ids', $form->_submitValues['msumfields_relatedcontrib_relationship_type_ids']);
+    sumfields_save_setting('msumfields_grant_status_ids', $form->_submitValues['msumfields_grant_status_ids']);
+    sumfields_save_setting('msumfields_grant_type_ids', $form->_submitValues['msumfields_grant_type_ids']);
 
-    // Define our own triggers, as needed.
+    // Update our own trigger data, as needed.
     _msumfields_generate_data_based_on_current_data();
   }
 }
@@ -83,6 +97,80 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     )',
     'trigger_table' => 'civicrm_participant',
     'optgroup' => 'event_standard',
+  );
+
+  $custom['fields']['grant_count_received'] = array(
+    'label' => msumfields_ts('Total number of grants received'),
+    'data_type' => 'Int',
+    'html_type' => 'Text',
+    'weight' => '71',
+    'text_length' => '255',
+    'trigger_sql' => _msumfields_sql_rewrite('
+      (
+        SELECT
+          count(*)
+        FROM 
+          civicrm_grant g
+        WHERE
+          g.contact_id = NEW.contact_id
+          AND g.status_id in (%msumfields_grant_status_ids)
+          AND g.grant_type_id in (%msumfields_grant_type_ids)
+      )
+    '),
+    'trigger_table' => 'civicrm_grant',
+    'optgroup' => 'civigrant',
+  );
+
+  $custom['fields']['grant_total_received'] = array(
+    'label' => msumfields_ts('Total amount in grants received'),
+    'data_type' => 'Money',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '32',
+    'trigger_sql' => _msumfields_sql_rewrite('
+      (
+        SELECT
+          coalesce(sum(g.amount_granted), 0)
+        FROM 
+          civicrm_grant g
+        WHERE
+          g.contact_id = NEW.contact_id
+          AND g.status_id in (%msumfields_grant_status_ids)
+          AND g.grant_type_id in (%msumfields_grant_type_ids)
+      )
+    '),
+    'trigger_table' => 'civicrm_grant',
+    'optgroup' => 'civigrant',
+  );
+
+  $custom['fields']['grant_types_received'] = array(
+    'label' => msumfields_ts('Grant types received'),
+    'data_type' => 'String',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '255',
+    'trigger_sql' => _msumfields_sql_rewrite('
+      (
+        SELECT
+          GROUP_CONCAT(
+            DISTINCT ov.label 
+            ORDER BY ov.label
+            SEPARATOR ", "
+          )
+        FROM 
+          civicrm_grant g
+          INNER JOIN civicrm_option_value ov ON ov.value = g.grant_type_id
+          INNER JOIN civicrm_option_group og 
+            ON og.id = ov.option_group_id 
+            AND og.name = "grant_type"
+        WHERE
+          g.contact_id = NEW.contact_id
+          AND g.status_id in (%msumfields_grant_status_ids)
+          AND g.grant_type_id in (%msumfields_grant_type_ids)          
+      )
+    '),
+    'trigger_table' => 'civicrm_grant',
+    'optgroup' => 'civigrant',
   );
 
   $custom['fields']['mail_openrate_alltime'] = array(
@@ -2060,6 +2148,14 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
     'fieldset' => 'CiviMail',
     'component' => 'CiviMail',
   );
+
+  // Define a new optgroup fieldset, to contain our Related Contributions fields
+  // and options.
+  $custom['optgroups']['civigrant'] = array(
+    'title' => 'CiviGrant Fields',
+    'fieldset' => 'CiviGrant',
+    'component' => 'CiviGrant',
+  );
 }
 
 /**
@@ -2408,6 +2504,40 @@ function _msumfields_get_all_relationship_types() {
 }
 
 /**
+ * Get all available relationship types; a simple wrapper around the CiviCRM API.
+ *
+ * @return array Suitable for a select field.
+ */
+function _msumfields_get_all_grant_statuses() {
+  $grantStatuses = array();
+  $result = civicrm_api3('OptionValue', 'get', array(
+    'sequential' => 1,
+    'option_group_id' => "grant_status",
+  ));
+  foreach ($result['values'] as $value) {
+    $grantStatuses[$value['value']] = $value['label'];
+  }
+  return $grantStatuses;
+}
+
+/**
+ * Get all available relationship types; a simple wrapper around the CiviCRM API.
+ *
+ * @return array Suitable for a select field.
+ */
+function _msumfields_get_all_grant_types() {
+  $grantStatuses = array();
+  $result = civicrm_api3('OptionValue', 'get', array(
+    'sequential' => 1,
+    'option_group_id' => "grant_type",
+  ));
+  foreach ($result['values'] as $value) {
+    $grantStatuses[$value['value']] = $value['label'];
+  }
+  return $grantStatuses;
+}
+
+/**
  * Replace msumfields %variables with the appropriate values. NOTE: this function
  * does NOT call msumfields_sql_rewrite().
  *
@@ -2419,6 +2549,8 @@ function _msumfields_sql_rewrite($sql) {
   // get a SQL error. So... for each of these, if the token is empty,
   // we fill it with all possible values at the moment. If a new option
   // is added, summary fields will have to be re-configured.
+
+  // Replace %msumfields_relatedcontrib_relationship_type_ids
   $ids = sumfields_get_setting('msumfields_relatedcontrib_relationship_type_ids', array());
   if (count($ids) == 0) {
     $ids = array_keys(_msumfields_get_all_relationship_types());
@@ -2426,6 +2558,7 @@ function _msumfields_sql_rewrite($sql) {
   $str_ids = implode(',', $ids);
   $sql = str_replace('%msumfields_relatedcontrib_relationship_type_ids', $str_ids, $sql);
 
+  // Replace %msumfields_relatedcontrib_financial_type_ids
   $ids = sumfields_get_setting('msumfields_relatedcontrib_financial_type_ids', array());
   if (count($ids) == 0) {
     $ids = array_keys(sumfields_get_all_financial_types());
@@ -2433,13 +2566,29 @@ function _msumfields_sql_rewrite($sql) {
   $str_ids = implode(',', $ids);
   $sql = str_replace('%msumfields_relatedcontrib_financial_type_ids', $str_ids, $sql);
 
+  // Replace %msumfields_grant_status_ids
+  $ids = sumfields_get_setting('msumfields_grant_status_ids', array());
+  if (count($ids) == 0) {
+    $ids = array_keys(_msumfields_get_all_grant_statuses());
+  }
+  $str_ids = implode(',', $ids);
+  $sql = str_replace('%msumfields_grant_status_ids', $str_ids, $sql);
+
+  // Replace %msumfields_grant_type_ids
+  $ids = sumfields_get_setting('msumfields_grant_type_ids', array());
+  if (count($ids) == 0) {
+    $ids = array_keys(_msumfields_get_all_grant_types());
+  }
+  $str_ids = implode(',', $ids);
+  $sql = str_replace('%msumfields_grant_type_ids', $str_ids, $sql);
+
   return $sql;
 }
 
 /**
- * Define our own triggers, as needed (some msumfields, such as the "Related
+ * Update our own trigger data, as needed (some msumfields, such as the "Related
  * Contributions" group, aren't fully supported by sumfields, so we do the extra
- * work here.
+ * work here).
  *
  * Copied and modified from sumfields_generate_data_based_on_current_data().
  *
