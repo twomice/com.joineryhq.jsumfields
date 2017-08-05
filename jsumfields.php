@@ -62,10 +62,10 @@ function jsumfields_civicrm_buildForm($formName, &$form) {
 function jsumfields_civicrm_postProcess($formName, &$form) {
   if ($formName == 'CRM_Sumfields_Form_SumFields') {
     // Save option fields as submitted.
-    sumfields_save_setting('jsumfields_relatedcontrib_financial_type_ids', $form->_submitValues['jsumfields_relatedcontrib_financial_type_ids']);
-    sumfields_save_setting('jsumfields_relatedcontrib_relationship_type_ids', $form->_submitValues['jsumfields_relatedcontrib_relationship_type_ids']);
-    sumfields_save_setting('jsumfields_grant_status_ids', $form->_submitValues['jsumfields_grant_status_ids']);
-    sumfields_save_setting('jsumfields_grant_type_ids', $form->_submitValues['jsumfields_grant_type_ids']);
+    sumfields_save_setting('jsumfields_relatedcontrib_financial_type_ids', CRM_Utils_Array::value('jsumfields_relatedcontrib_financial_type_ids', $form->_submitValues));
+    sumfields_save_setting('jsumfields_relatedcontrib_relationship_type_ids', CRM_Utils_Array::value('jsumfields_relatedcontrib_relationship_type_ids', $form->_submitValues));
+    sumfields_save_setting('jsumfields_grant_status_ids', CRM_Utils_Array::value('jsumfields_grant_status_ids', $form->_submitValues));
+    sumfields_save_setting('jsumfields_grant_type_ids', CRM_Utils_Array::value('jsumfields_grant_type_ids', $form->_submitValues));
 
     if ($form->_submitValues['when_to_apply_change'] == 'on_submit') {
       // Update our own trigger data, as needed.
