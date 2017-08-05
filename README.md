@@ -38,4 +38,4 @@ This extension currently provides the following fields:
 * CiviGrant: Grant types received
 
 ## Developer notes
-See DEVNOTES.md.
+See [DEVNOTES.md](DEVNOTES.md).
