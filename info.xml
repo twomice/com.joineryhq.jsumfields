@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<extension key="com.joineryhq.msumfields" type="module">
-  <file>msumfields</file>
-  <name>More Summary Fields</name>
+<extension key="com.joineryhq.jsumfields" type="module">
+  <file>jsumfields</file>
+  <name>Joinery's More Summary Fields</name>
   <description>Provides additional fields under the Summary Fields framework</description>
   <license>GPL-3.0</license>
   <maintainer>
@@ -9,19 +9,19 @@
     <email>allen@JoineryHQ.com</email>
   </maintainer>
   <urls>
-    <url desc="Main Extension Page">https://github.com/twomice/com.joineryhq.msumfields</url>
-    <url desc="Documentation">https://github.com/twomice/com.joineryhq.msumfields</url>
-    <url desc="Support">https://github.com/twomice/com.joineryhq.msumfields/issues</url>
+    <url desc="Main Extension Page">https://github.com/twomice/com.joineryhq.jsumfields</url>
+    <url desc="Documentation">https://github.com/twomice/com.joineryhq.jsumfields</url>
+    <url desc="Support">https://github.com/twomice/com.joineryhq.jsumfields/issues</url>
     <url desc="Licensing">http://www.gnu.org/licenses/gpl-3.0.html</url>
   </urls>
   <releaseDate>2017-05-23</releaseDate>
-  <version>0.1-dev1</version>
-  <develStage>dev</develStage>
+  <version>0.1-alpha1</version>
+  <develStage>alpha</develStage>
   <compatibility>
     <ver>4.7</ver>
   </compatibility>
   <comments>Initial development sponsored by McKenzie River Gathering Foundation.</comments>
   <civix>
-    <namespace>CRM/Msumfields</namespace>
+    <namespace>CRM/Jsumfields</namespace>
   </civix>
 </extension>

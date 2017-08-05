@@ -5,7 +5,7 @@
 /**
  * Base class which provides helpers to execute upgrade logic
  */
-class CRM_Msumfields_Upgrader_Base {
+class CRM_Jsumfields_Upgrader_Base {
 
   /**
    * @var varies, subclass of ttis
@@ -44,8 +44,8 @@ class CRM_Msumfields_Upgrader_Base {
   static public function instance() {
     if (!self::$instance) {
       // FIXME auto-generate
-      self::$instance = new CRM_Msumfields_Upgrader(
-        'com.joineryhq.msumfields',
+      self::$instance = new CRM_Jsumfields_Upgrader(
+        'com.joineryhq.jsumfields',
         realpath(__DIR__ . '/../../../')
       );
     }
@@ -59,7 +59,7 @@ class CRM_Msumfields_Upgrader_Base {
    * task-context; otherwise, this will be non-reentrant.
    *
    * @code
-   * CRM_Msumfields_Upgrader_Base::_queueAdapter($ctx, 'methodName', 'arg1', 'arg2');
+   * CRM_Jsumfields_Upgrader_Base::_queueAdapter($ctx, 'methodName', 'arg1', 'arg2');
    * @endcode
    */
   static public function _queueAdapter() {

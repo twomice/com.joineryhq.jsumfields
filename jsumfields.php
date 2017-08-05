@@ -1,55 +1,55 @@
 <?php
 
-require_once 'msumfields.civix.php';
+require_once 'jsumfields.civix.php';
 
 /**
   * Implements hook_civicrm_apiWrappers().
   */
-function msumfields_civicrm_apiWrappers(&$wrappers, $apiRequest) {
+function jsumfields_civicrm_apiWrappers(&$wrappers, $apiRequest) {
   if (strtolower($apiRequest['entity']) == 'sumfields' && strtolower($apiRequest['action']) == 'gendata') {
-    $wrappers[] = new CRM_Msumfields_APIWrapperSumfieldsGendata();
+    $wrappers[] = new CRM_Jsumfields_APIWrapperSumfieldsGendata();
   }
 }
 
 /**
  * Implements hook_civicrm_buildForm().
  */
-function msumfields_civicrm_buildForm($formName, &$form) {
+function jsumfields_civicrm_buildForm($formName, &$form) {
   if ($formName == 'CRM_Sumfields_Form_SumFields') {
     $tpl = CRM_Core_Smarty::singleton();
     $fieldsets = $tpl->_tpl_vars['fieldsets'];
 
-    // Get msumfields definitions, because we need the fieldset names as a target
+    // Get jsumfields definitions, because we need the fieldset names as a target
     // for where to insert our option fields
     $custom = array();
-    msumfields_civicrm_sumfields_definitions($custom);
+    jsumfields_civicrm_sumfields_definitions($custom);
 
     // Create a field for Financial Types on related contributions.
-    $label = msumfields_ts('Financial Types');
-    $form->add('select', 'msumfields_relatedcontrib_financial_type_ids', $label, sumfields_get_all_financial_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
-    $fieldsets[$custom['optgroups']['relatedcontrib']['fieldset']]['msumfields_relatedcontrib_financial_type_ids'] = msumfields_ts('Financial types to be used when calculating Related Contribution summary fields.');
+    $label = jsumfields_ts('Financial Types');
+    $form->add('select', 'jsumfields_relatedcontrib_financial_type_ids', $label, sumfields_get_all_financial_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $fieldsets[$custom['optgroups']['relatedcontrib']['fieldset']]['jsumfields_relatedcontrib_financial_type_ids'] = jsumfields_ts('Financial types to be used when calculating Related Contribution summary fields.');
 
     // Create a field for Relationship Types on related contributions.
-    $label = msumfields_ts('Relationship Types');
-    $form->add('select', 'msumfields_relatedcontrib_relationship_type_ids', $label, _msumfields_get_all_relationship_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
-    $fieldsets[$custom['optgroups']['relatedcontrib']['fieldset']]['msumfields_relatedcontrib_relationship_type_ids'] = msumfields_ts('Relationship types to be used when calculating Related Contribution summary fields.');
+    $label = jsumfields_ts('Relationship Types');
+    $form->add('select', 'jsumfields_relatedcontrib_relationship_type_ids', $label, _jsumfields_get_all_relationship_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $fieldsets[$custom['optgroups']['relatedcontrib']['fieldset']]['jsumfields_relatedcontrib_relationship_type_ids'] = jsumfields_ts('Relationship types to be used when calculating Related Contribution summary fields.');
 
     // Create a field for Grant Status on grant fields.
-    $label = msumfields_ts('Grant Statuses');
-    $form->add('select', 'msumfields_grant_status_ids', $label, _msumfields_get_all_grant_statuses(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
-    $fieldsets[$custom['optgroups']['civigrant']['fieldset']]['msumfields_grant_status_ids'] = msumfields_ts('Grant statuses to be used when calculating Grant fields.');
+    $label = jsumfields_ts('Grant Statuses');
+    $form->add('select', 'jsumfields_grant_status_ids', $label, _jsumfields_get_all_grant_statuses(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $fieldsets[$custom['optgroups']['civigrant']['fieldset']]['jsumfields_grant_status_ids'] = jsumfields_ts('Grant statuses to be used when calculating Grant fields.');
 
     // Create a field for Grant Type on grant fields.
-    $label = msumfields_ts('Grant Types');
-    $form->add('select', 'msumfields_grant_type_ids', $label, _msumfields_get_all_grant_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
-    $fieldsets[$custom['optgroups']['civigrant']['fieldset']]['msumfields_grant_type_ids'] = msumfields_ts('Grant types to be used when calculating Grant fields.');
+    $label = jsumfields_ts('Grant Types');
+    $form->add('select', 'jsumfields_grant_type_ids', $label, _jsumfields_get_all_grant_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $fieldsets[$custom['optgroups']['civigrant']['fieldset']]['jsumfields_grant_type_ids'] = jsumfields_ts('Grant types to be used when calculating Grant fields.');
 
     // Set defaults.
     $form->setDefaults(array(
-      'msumfields_relatedcontrib_financial_type_ids' => sumfields_get_setting('msumfields_relatedcontrib_financial_type_ids'),
-      'msumfields_relatedcontrib_relationship_type_ids' => sumfields_get_setting('msumfields_relatedcontrib_relationship_type_ids'),
-      'msumfields_grant_status_ids' => sumfields_get_setting('msumfields_grant_status_ids'),
-      'msumfields_grant_type_ids' => sumfields_get_setting('msumfields_grant_type_ids'),
+      'jsumfields_relatedcontrib_financial_type_ids' => sumfields_get_setting('jsumfields_relatedcontrib_financial_type_ids'),
+      'jsumfields_relatedcontrib_relationship_type_ids' => sumfields_get_setting('jsumfields_relatedcontrib_relationship_type_ids'),
+      'jsumfields_grant_status_ids' => sumfields_get_setting('jsumfields_grant_status_ids'),
+      'jsumfields_grant_type_ids' => sumfields_get_setting('jsumfields_grant_type_ids'),
     ));
 
     $form->assign('fieldsets', $fieldsets);
@@ -59,17 +59,17 @@ function msumfields_civicrm_buildForm($formName, &$form) {
 /**
  * Implements hook_civicrm_postProcess().
  */
-function msumfields_civicrm_postProcess($formName, &$form) {
+function jsumfields_civicrm_postProcess($formName, &$form) {
   if ($formName == 'CRM_Sumfields_Form_SumFields') {
     // Save option fields as submitted.
-    sumfields_save_setting('msumfields_relatedcontrib_financial_type_ids', $form->_submitValues['msumfields_relatedcontrib_financial_type_ids']);
-    sumfields_save_setting('msumfields_relatedcontrib_relationship_type_ids', $form->_submitValues['msumfields_relatedcontrib_relationship_type_ids']);
-    sumfields_save_setting('msumfields_grant_status_ids', $form->_submitValues['msumfields_grant_status_ids']);
-    sumfields_save_setting('msumfields_grant_type_ids', $form->_submitValues['msumfields_grant_type_ids']);
+    sumfields_save_setting('jsumfields_relatedcontrib_financial_type_ids', $form->_submitValues['jsumfields_relatedcontrib_financial_type_ids']);
+    sumfields_save_setting('jsumfields_relatedcontrib_relationship_type_ids', $form->_submitValues['jsumfields_relatedcontrib_relationship_type_ids']);
+    sumfields_save_setting('jsumfields_grant_status_ids', $form->_submitValues['jsumfields_grant_status_ids']);
+    sumfields_save_setting('jsumfields_grant_type_ids', $form->_submitValues['jsumfields_grant_type_ids']);
 
     if ($form->_submitValues['when_to_apply_change'] == 'on_submit') {
       // Update our own trigger data, as needed.
-      _msumfields_generate_data_based_on_current_data();
+      _jsumfields_generate_data_based_on_current_data();
     }
   }
 }
@@ -77,21 +77,21 @@ function msumfields_civicrm_postProcess($formName, &$form) {
 /**
  * Implements hook_civicrm_sumfields_definitions().
  *
- * NOTE: Array properties in $custom named 'msumfields_*' will be used by
- * msumfields_civicrm_triggerInfo() to build triggers, and by
- * _msumfields_generate_data_based_on_current_data() to populate field values.
+ * NOTE: Array properties in $custom named 'jsumfields_*' will be used by
+ * jsumfields_civicrm_triggerInfo() to build triggers, and by
+ * _jsumfields_generate_data_based_on_current_data() to populate field values.
  * 
- * See DEVNOTES.md for supported 'msumfields_*' properties.
+ * See DEVNOTES.md for supported 'jsumfields_*' properties.
  */
-function msumfields_civicrm_sumfields_definitions(&$custom) {
+function jsumfields_civicrm_sumfields_definitions(&$custom) {
   // Adjust some labels in summary fields to be more explicit.
-  $custom['fields']['contribution_total_this_year']['label'] = msumfields_ts('Total Contributions this Fiscal Year');
-  $custom['fields']['contribution_total_last_year']['label'] = msumfields_ts('Total Contributions last Fiscal Year');
-  $custom['fields']['contribution_total_year_before_last']['label'] = msumfields_ts('Total Contributions Fiscal Year Before Last');
-  $custom['fields']['soft_total_this_year']['label'] = msumfields_ts('Total Soft Credits this Fiscal Year');
+  $custom['fields']['contribution_total_this_year']['label'] = jsumfields_ts('Total Contributions this Fiscal Year');
+  $custom['fields']['contribution_total_last_year']['label'] = jsumfields_ts('Total Contributions last Fiscal Year');
+  $custom['fields']['contribution_total_year_before_last']['label'] = jsumfields_ts('Total Contributions Fiscal Year Before Last');
+  $custom['fields']['soft_total_this_year']['label'] = jsumfields_ts('Total Soft Credits this Fiscal Year');
 
   $custom['fields']['event_first_attended_date'] = array(
-    'label' => msumfields_ts('Date of the first attended event'),
+    'label' => jsumfields_ts('Date of the first attended event'),
     'data_type' => 'Date',
     'html_type' => 'Select Date',
     'weight' => '71',
@@ -112,12 +112,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['grant_count_received'] = array(
-    'label' => msumfields_ts('Total number of grants received'),
+    'label' => jsumfields_ts('Total number of grants received'),
     'data_type' => 'Int',
     'html_type' => 'Text',
     'weight' => '71',
     'text_length' => '255',
-    'trigger_sql' => _msumfields_sql_rewrite('
+    'trigger_sql' => _jsumfields_sql_rewrite('
       (
         SELECT
           count(*)
@@ -125,8 +125,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
           civicrm_grant g
         WHERE
           g.contact_id = NEW.contact_id
-          AND g.status_id in (%msumfields_grant_status_ids)
-          AND g.grant_type_id in (%msumfields_grant_type_ids)
+          AND g.status_id in (%jsumfields_grant_status_ids)
+          AND g.grant_type_id in (%jsumfields_grant_type_ids)
       )
     '),
     'trigger_table' => 'civicrm_grant',
@@ -134,12 +134,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['grant_total_received'] = array(
-    'label' => msumfields_ts('Total amount in grants received'),
+    'label' => jsumfields_ts('Total amount in grants received'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => _msumfields_sql_rewrite('
+    'trigger_sql' => _jsumfields_sql_rewrite('
       (
         SELECT
           coalesce(sum(g.amount_granted), 0)
@@ -147,8 +147,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
           civicrm_grant g
         WHERE
           g.contact_id = NEW.contact_id
-          AND g.status_id in (%msumfields_grant_status_ids)
-          AND g.grant_type_id in (%msumfields_grant_type_ids)
+          AND g.status_id in (%jsumfields_grant_status_ids)
+          AND g.grant_type_id in (%jsumfields_grant_type_ids)
       )
     '),
     'trigger_table' => 'civicrm_grant',
@@ -156,12 +156,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['grant_types_received'] = array(
-    'label' => msumfields_ts('Grant types received'),
+    'label' => jsumfields_ts('Grant types received'),
     'data_type' => 'String',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '255',
-    'trigger_sql' => _msumfields_sql_rewrite('
+    'trigger_sql' => _jsumfields_sql_rewrite('
       (
         SELECT
           GROUP_CONCAT(
@@ -177,8 +177,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
             AND og.name = "grant_type"
         WHERE
           g.contact_id = NEW.contact_id
-          AND g.status_id in (%msumfields_grant_status_ids)
-          AND g.grant_type_id in (%msumfields_grant_type_ids)          
+          AND g.status_id in (%jsumfields_grant_status_ids)
+          AND g.grant_type_id in (%jsumfields_grant_type_ids)          
       )
     '),
     'trigger_table' => 'civicrm_grant',
@@ -186,15 +186,15 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['mail_openrate_alltime'] = array(
-    'label' => msumfields_ts('Open rate rate all time'),
+    'label' => jsumfields_ts('Open rate rate all time'),
     'data_type' => 'Float',
     'html_type' => 'Text',
     'weight' => '71',
     'text_length' => '255',
-    'trigger_table' => 'civicrm_msumfields_placeholder',
+    'trigger_table' => 'civicrm_jsumfields_placeholder',
     'trigger_sql' => '""',
-    'msumfields_update_sql' => '
-      INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+    'jsumfields_update_sql' => '
+      INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
         SELECT t.contact_id, t.rate
         FROM
           (
@@ -235,13 +235,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
               q.contact_id
           ) b ON b.contact_id = s.contact_id
         ) t
-      ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+      ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
     ',
-    'msumfields_extra' => array(
+    'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_mailing_event_delivered',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
               SELECT t.contact_id, t.rate
               FROM
                 (
@@ -285,13 +285,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     q2.contact_id
                 ) b ON b.contact_id = s.contact_id
               ) t
-            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+            ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_mailing_event_bounce',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
               SELECT t.contact_id, t.rate
               FROM
                 (
@@ -335,13 +335,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     q2.contact_id
                 ) b ON b.contact_id = s.contact_id
               ) t
-            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+            ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_mailing_event_opened',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
               SELECT t.contact_id, t.rate
               FROM
                 (
@@ -385,7 +385,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     q2.contact_id
                 ) b ON b.contact_id = s.contact_id
               ) t
-            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+            ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
       ),
     ),
@@ -393,15 +393,15 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['mail_openrate_last12months'] = array(
-    'label' => msumfields_ts('Open rate rate last 12 months'),
+    'label' => jsumfields_ts('Open rate rate last 12 months'),
     'data_type' => 'Float',
     'html_type' => 'Text',
     'weight' => '71',
     'text_length' => '255',
-    'trigger_table' => 'civicrm_msumfields_placeholder',
+    'trigger_table' => 'civicrm_jsumfields_placeholder',
     'trigger_sql' => '""',
-    'msumfields_update_sql' => '
-      INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+    'jsumfields_update_sql' => '
+      INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
         SELECT t.contact_id, t.rate
         FROM
           (
@@ -451,13 +451,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
               q2.contact_id
           ) b ON b.contact_id = s.contact_id
         ) t
-      ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+      ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
     ',
-    'msumfields_extra' => array(
+    'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_mailing_event_delivered',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
               SELECT t.contact_id, t.rate
               FROM
                 (
@@ -507,13 +507,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     q2.contact_id
                 ) b ON b.contact_id = s.contact_id
               ) t
-            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+            ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_mailing_event_bounce',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
               SELECT t.contact_id, t.rate
               FROM
                 (
@@ -560,13 +560,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     q2.contact_id
                 ) b ON b.contact_id = s.contact_id
               ) t
-            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+            ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_mailing_event_opened',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
               SELECT t.contact_id, t.rate
               FROM
                 (
@@ -613,7 +613,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     q2.contact_id
                 ) b ON b.contact_id = s.contact_id
               ) t
-            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+            ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
       ),
     ),
@@ -621,15 +621,15 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['mail_clickrate_alltime'] = array(
-    'label' => msumfields_ts('Open click-through rate all time'),
+    'label' => jsumfields_ts('Open click-through rate all time'),
     'data_type' => 'Float',
     'html_type' => 'Text',
     'weight' => '71',
     'text_length' => '255',
-    'trigger_table' => 'civicrm_msumfields_placeholder',
+    'trigger_table' => 'civicrm_jsumfields_placeholder',
     'trigger_sql' => '""',
-    'msumfields_update_sql' => '
-      INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+    'jsumfields_update_sql' => '
+      INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
         SELECT t.contact_id, t.rate
         FROM
           (
@@ -676,13 +676,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
               q2.contact_id
           ) b ON b.contact_id = s.contact_id
         ) t
-      ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+      ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
     ',
-    'msumfields_extra' => array(
+    'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_mailing_event_delivered',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
               SELECT t.contact_id, t.rate
               FROM
                 (
@@ -729,13 +729,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     q2.contact_id
                 ) b ON b.contact_id = s.contact_id
               ) t
-            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+            ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_mailing_event_bounce',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
               SELECT t.contact_id, t.rate
               FROM
                 (
@@ -779,13 +779,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     q2.contact_id
                 ) b ON b.contact_id = s.contact_id
               ) t
-            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+            ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_mailing_event_trackable_url_open',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
               SELECT t.contact_id, t.rate
               FROM
                 (
@@ -829,7 +829,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     q2.contact_id
                 ) b ON b.contact_id = s.contact_id
               ) t
-            ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.rate;
+            ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
       ),
     ),
@@ -837,7 +837,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['contribution_total_this_calendar_year'] = array(
-    'label' => msumfields_ts('Total Contributions this Calendar Year'),
+    'label' => jsumfields_ts('Total Contributions this Calendar Year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
@@ -856,7 +856,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['contribution_total_last_calendar_year'] = array(
-    'label' => msumfields_ts('Total Contributions last Calendar Year'),
+    'label' => jsumfields_ts('Total Contributions last Calendar Year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
@@ -874,7 +874,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['contribution_total_calendar_year_before_last'] = array(
-    'label' => msumfields_ts('Total Contributions Calendar Year Before Last'),
+    'label' => jsumfields_ts('Total Contributions Calendar Year Before Last'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
@@ -892,7 +892,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['contribution_count_distinct_years'] = array(
-    'label' => msumfields_ts('Number of Years of Contributions'),
+    'label' => jsumfields_ts('Number of Years of Contributions'),
     'data_type' => 'Integer',
     'html_type' => 'Text',
     'weight' => '15',
@@ -910,7 +910,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['soft_total_this_calendar_year'] = array(
-    'label' => msumfields_ts('Total Soft Credits this Calendar Year'),
+    'label' => jsumfields_ts('Total Soft Credits this Calendar Year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
@@ -932,7 +932,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['soft_total_last_calendar_year'] = array(
-    'label' => msumfields_ts('Total Soft Credits last Calendar Year'),
+    'label' => jsumfields_ts('Total Soft Credits last Calendar Year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
@@ -954,7 +954,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['soft_total_last_fiscal_year'] = array(
-    'label' => msumfields_ts('Total Soft Credits last Fiscal Year'),
+    'label' => jsumfields_ts('Total Soft Credits last Fiscal Year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
@@ -976,7 +976,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['hard_and_soft'] = array(
-    'label' => msumfields_ts('Lifetime contributions + soft credits'),
+    'label' => jsumfields_ts('Lifetime contributions + soft credits'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
@@ -1000,26 +1000,26 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
    *  1. that every trigger table has a column named contact_id (which civicrm_relationship does not)
    *  2. that the contact_id column in the trigger table is the one for whom the custom field should be updated (which is not true for any realtionship-based sumfields).
    * So to make this work, we hijack and emulate select parts of sumfields logic:
-   *  a. _msumfields_generate_data_based_on_current_data(), our own version of
+   *  a. _jsumfields_generate_data_based_on_current_data(), our own version of
    *    sumfields_generate_data_based_on_current_data()
-   *  b. calling _msumfields_generate_data_based_on_current_data() via
+   *  b. calling _jsumfields_generate_data_based_on_current_data() via
    *    apiwrappers hook, so it always happens when the API gendata is called.
-   *  c. calling _msumfields_generate_data_based_on_current_data() via
+   *  c. calling _jsumfields_generate_data_based_on_current_data() via
    *    postProcess hook, so it happens (as needed ) when the Sumfields form is
    *    submitted.
    * To make all this happen, we define special values in array properties named
-   * 'msumfields_*', which are ignored by sumfields, but are specifically
-   * handled by _msumfields_generate_data_based_on_current_data() and
-   * msumfields_civicrm_triggerInfo().
+   * 'jsumfields_*', which are ignored by sumfields, but are specifically
+   * handled by _jsumfields_generate_data_based_on_current_data() and
+   * jsumfields_civicrm_triggerInfo().
    */
 
   $custom['fields']['relatedcontrib_this_fiscal_year'] = array(
-    'label' => msumfields_ts('Related contact contributions this fiscal year'),
+    'label' => jsumfields_ts('Related contact contributions this fiscal year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => _msumfields_sql_rewrite('
+    'trigger_sql' => _jsumfields_sql_rewrite('
     (
       select coalesce(sum(total_amount),0) as total from
         (
@@ -1036,9 +1036,9 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
         ) t
         where
-          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
           and t.is_active
-          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
           AND CAST(t.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
           AND t.contribution_status_id = 1
           AND contact_id_a = NEW.contact_id
@@ -1046,11 +1046,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'msumfields_extra' => array(
+    'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT t.related_contact_id, t.total
             FROM
             (
@@ -1064,26 +1064,26 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_relationship r
                   WHERE 
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                    AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) t
                 INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                   AND r.is_active
                 LEFT JOIN civicrm_contribution ctrb ON ctrb.contact_id = if(t.related_contact_id = r.contact_id_b, r.contact_id_a, r.contact_id_b)
-                  and ctrb.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND CAST(ctrb.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
                   AND ctrb.contribution_status_id = 1
               GROUP BY
                 t.related_contact_id
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         '
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
             (
@@ -1094,8 +1094,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 INNER JOIN civicrm_contribution cont1
               WHERE
                 r.is_active
-                AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                 AND (
                   (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
                   OR
@@ -1104,13 +1104,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 AND CAST(cont1.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
                 AND cont1.contribution_status_id = 1
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
             (
@@ -1121,8 +1121,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 INNER JOIN civicrm_contribution cont1
               WHERE
                 r.is_active
-                AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                 AND (
                   (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
                   OR
@@ -1131,7 +1131,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 AND CAST(cont1.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
                 AND cont1.contribution_status_id = 1
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
        ',
       ),
     ),
@@ -1139,12 +1139,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['relatedcontrib_this_calendar_year'] = array(
-    'label' => msumfields_ts('Related contact contributions this calendar year'),
+    'label' => jsumfields_ts('Related contact contributions this calendar year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => _msumfields_sql_rewrite('
+    'trigger_sql' => _jsumfields_sql_rewrite('
     (
       select coalesce(sum(total_amount),0) as total from
         (
@@ -1161,9 +1161,9 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
         ) t
         where
-          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
           and t.is_active
-          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
           AND YEAR(CAST(t.receive_date AS DATE)) = YEAR(CURDATE())
           AND t.contribution_status_id = 1
           AND contact_id_a = NEW.contact_id
@@ -1171,11 +1171,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'msumfields_extra' => array(
+    'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT t.related_contact_id, t.total
             FROM
             (
@@ -1189,26 +1189,26 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_relationship r
                   WHERE 
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                    AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) t
                 INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                   AND r.is_active
                 LEFT JOIN civicrm_contribution ctrb ON ctrb.contact_id = if(t.related_contact_id = r.contact_id_b, r.contact_id_a, r.contact_id_b)
-                  and ctrb.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND YEAR(CAST(ctrb.receive_date AS DATE)) = YEAR(CURDATE())
                   AND ctrb.contribution_status_id = 1
               GROUP BY
                 t.related_contact_id
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         '
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
             (
@@ -1219,8 +1219,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 INNER JOIN civicrm_contribution cont1
               WHERE
                 r.is_active
-                AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                 AND (
                   (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
                   OR
@@ -1229,13 +1229,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
                 AND cont1.contribution_status_id = 1
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
             (
@@ -1246,8 +1246,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 INNER JOIN civicrm_contribution cont1
               WHERE
                 r.is_active
-                AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                 AND (
                   (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
                   OR
@@ -1256,7 +1256,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
                 AND cont1.contribution_status_id = 1
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
     ),
@@ -1264,12 +1264,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['relatedcontrib_last_calendar_year'] = array(
-    'label' => msumfields_ts('Related contact contributions last calendar year'),
+    'label' => jsumfields_ts('Related contact contributions last calendar year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => _msumfields_sql_rewrite('
+    'trigger_sql' => _jsumfields_sql_rewrite('
     (
       select coalesce(sum(total_amount),0) as total from
         (
@@ -1286,9 +1286,9 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
         ) t
         where
-          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
           and t.is_active
-          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
           AND YEAR(CAST(t.receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
           AND t.contribution_status_id = 1
           AND contact_id_a = NEW.contact_id
@@ -1296,11 +1296,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'msumfields_extra' => array(
+    'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT t.related_contact_id, t.total
             FROM
             (
@@ -1314,26 +1314,26 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_relationship r
                   WHERE 
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                    AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) t
                 INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                   AND r.is_active
                 LEFT JOIN civicrm_contribution ctrb ON ctrb.contact_id = if(t.related_contact_id = r.contact_id_b, r.contact_id_a, r.contact_id_b)
-                  and ctrb.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND YEAR(CAST(ctrb.receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
                   AND ctrb.contribution_status_id = 1
               GROUP BY
                 t.related_contact_id
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         '
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
             (
@@ -1344,8 +1344,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 INNER JOIN civicrm_contribution cont1
               WHERE
                 r.is_active
-                AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                 AND (
                   (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
                   OR
@@ -1354,13 +1354,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
                 AND cont1.contribution_status_id = 1
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
             (
@@ -1371,8 +1371,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 INNER JOIN civicrm_contribution cont1
               WHERE
                 r.is_active
-                AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                 AND (
                   (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
                   OR
@@ -1381,7 +1381,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
                 AND cont1.contribution_status_id = 1
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
     ),
@@ -1389,12 +1389,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['relatedcontrib_alltime'] = array(
-    'label' => msumfields_ts('Related contact contributions all time'),
+    'label' => jsumfields_ts('Related contact contributions all time'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => _msumfields_sql_rewrite('
+    'trigger_sql' => _jsumfields_sql_rewrite('
     (
       select coalesce(sum(total_amount),0) as total from
         (
@@ -1411,20 +1411,20 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
         ) t
         where
-          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+          t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
           and t.is_active
-          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
           AND t.contribution_status_id = 1
           AND contact_id_a = NEW.contact_id
         group by contact_id_a
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'msumfields_extra' => array(
+    'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT t.related_contact_id, t.total
             FROM
             (
@@ -1438,25 +1438,25 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_relationship r
                   WHERE 
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                    AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) t
                 INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                   AND r.is_active
                 LEFT JOIN civicrm_contribution ctrb ON ctrb.contact_id = if(t.related_contact_id = r.contact_id_b, r.contact_id_a, r.contact_id_b)
-                  and ctrb.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND ctrb.contribution_status_id = 1
               GROUP BY
                 t.related_contact_id
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         '
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
             (
@@ -1467,8 +1467,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 INNER JOIN civicrm_contribution cont1
               WHERE
                 r.is_active
-                AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                 AND (
                   (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
                   OR
@@ -1476,13 +1476,13 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 )
                 AND cont1.contribution_status_id = 1
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
             (
@@ -1493,8 +1493,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 INNER JOIN civicrm_contribution cont1
               WHERE
                 r.is_active
-                AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                 AND (
                   (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
                   OR
@@ -1502,7 +1502,7 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                 )
                 AND cont1.contribution_status_id = 1
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
     ),
@@ -1510,12 +1510,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['relatedcontrib_plusme_this_fiscal_year'] = array(
-    'label' => msumfields_ts('Combined contact & related contact contributions this fiscal year'),
+    'label' => jsumfields_ts('Combined contact & related contact contributions this fiscal year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => _msumfields_sql_rewrite('
+    'trigger_sql' => _jsumfields_sql_rewrite('
     (
       select coalesce(sum(total_amount)) as total from
         (
@@ -1535,9 +1535,9 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
             from civicrm_contribution ctrb
         ) t
         where
-          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids, 0)
+          t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids, 0)
           and t.is_active
-          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
           AND CAST(t.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
           AND t.contribution_status_id = 1
           AND contact_id_a = NEW.contact_id
@@ -1545,11 +1545,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'msumfields_extra' => array(
+    'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
           SELECT t.related_contact_id, t.total
           FROM
             (
@@ -1569,11 +1569,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                         civicrm_relationship r
                       WHERE 
                         NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                        AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                        AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                         AND r.is_active
                     ) t
                     INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
-                      AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                      AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                       AND r.is_active
                   UNION
                   -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
@@ -1583,26 +1583,26 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_relationship r
                   WHERE 
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                    AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) donors
                 LEFT JOIN civicrm_contribution ctrb 
                   ON (
                     ctrb.contact_id = donors.donor_contact_id
                   )
-                  and ctrb.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND CAST(ctrb.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
                   AND ctrb.contribution_status_id = 1
               GROUP BY
                 donors.related_contact_id
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',        
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
             (
@@ -1616,8 +1616,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   INNER JOIN civicrm_contribution cont1
                 WHERE
                   r.is_active
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND (
                     (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
                     OR
@@ -1632,18 +1632,18 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   civicrm_contribution
                 WHERE
                   contact_id = NEW.contact_id_a
-                  AND financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND CAST(receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
                   AND contribution_status_id = 1
               ) t
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
             (
@@ -1657,8 +1657,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   INNER JOIN civicrm_contribution cont1
                 WHERE
                   r.is_active
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND (
                     (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
                     OR
@@ -1673,12 +1673,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   civicrm_contribution
                 WHERE
                   contact_id = NEW.contact_id_b
-                  AND financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND CAST(receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
                   AND contribution_status_id = 1
               ) t
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
     ),
@@ -1686,12 +1686,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['relatedcontrib_plusme_this_calendar_year'] = array(
-    'label' => msumfields_ts('Combined contact & related contact contributions this calendar year'),
+    'label' => jsumfields_ts('Combined contact & related contact contributions this calendar year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => _msumfields_sql_rewrite('
+    'trigger_sql' => _jsumfields_sql_rewrite('
     (
       select coalesce(sum(total_amount)) as total from
         (
@@ -1711,9 +1711,9 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
             from civicrm_contribution ctrb
         ) t
         where
-          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids, 0)
+          t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids, 0)
           and t.is_active
-          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
           AND YEAR(CAST(receive_date AS DATE)) = YEAR(CURDATE())
           AND t.contribution_status_id = 1
           AND contact_id_a = NEW.contact_id
@@ -1721,11 +1721,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'msumfields_extra' => array(
+    'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
           SELECT t.related_contact_id, t.total
           FROM
             (
@@ -1745,11 +1745,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                         civicrm_relationship r
                       WHERE 
                         NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                        AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                        AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                         AND r.is_active
                     ) t
                     INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
-                      AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                      AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                       AND r.is_active
                   UNION
                   -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
@@ -1759,26 +1759,26 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_relationship r
                   WHERE 
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                    AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) donors
                 LEFT JOIN civicrm_contribution ctrb 
                   ON (
                     ctrb.contact_id = donors.donor_contact_id
                   )
-                  and ctrb.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND YEAR(CAST(ctrb.receive_date AS DATE)) = YEAR(CURDATE())
                   AND ctrb.contribution_status_id = 1
               GROUP BY
                 donors.related_contact_id
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',        
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
             (
@@ -1792,8 +1792,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   INNER JOIN civicrm_contribution cont1
                 WHERE
                   r.is_active
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND (
                     (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
                     OR
@@ -1808,18 +1808,18 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   civicrm_contribution
                 WHERE
                   contact_id = NEW.contact_id_a
-                  AND financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND YEAR(CAST(receive_date AS DATE)) = YEAR(CURDATE())
                   AND contribution_status_id = 1
               ) t
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
             (
@@ -1833,8 +1833,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   INNER JOIN civicrm_contribution cont1
                 WHERE
                   r.is_active
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND (
                     (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
                     OR
@@ -1849,12 +1849,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   civicrm_contribution
                 WHERE
                   contact_id = NEW.contact_id_b
-                  AND financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND YEAR(CAST(receive_date AS DATE)) = YEAR(CURDATE())
                   AND contribution_status_id = 1
               ) t
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
     ),
@@ -1862,12 +1862,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['relatedcontrib_plusme_last_fiscal_year'] = array(
-    'label' => msumfields_ts('Combined contact & related contact contributions last fiscal year'),
+    'label' => jsumfields_ts('Combined contact & related contact contributions last fiscal year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => _msumfields_sql_rewrite('
+    'trigger_sql' => _jsumfields_sql_rewrite('
     (
       select coalesce(sum(total_amount)) as total from
         (
@@ -1887,9 +1887,9 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
             from civicrm_contribution ctrb
         ) t
         where
-          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids, 0)
+          t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids, 0)
           and t.is_active
-          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
           AND CAST(receive_date AS DATE) BETWEEN DATE_SUB("%current_fiscal_year_begin", INTERVAL 1 YEAR) AND DATE_SUB("%current_fiscal_year_end", INTERVAL 1 YEAR)
           AND t.contribution_status_id = 1
           AND contact_id_a = NEW.contact_id
@@ -1897,11 +1897,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'msumfields_extra' => array(
+    'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
           SELECT t.related_contact_id, t.total
           FROM
             (
@@ -1921,11 +1921,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                         civicrm_relationship r
                       WHERE 
                         NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                        AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                        AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                         AND r.is_active
                     ) t
                     INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
-                      AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                      AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                       AND r.is_active
                   UNION
                   -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
@@ -1935,26 +1935,26 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_relationship r
                   WHERE 
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                    AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) donors
                 LEFT JOIN civicrm_contribution ctrb 
                   ON (
                     ctrb.contact_id = donors.donor_contact_id
                   )
-                  and ctrb.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND CAST(ctrb.receive_date AS DATE) BETWEEN DATE_SUB("%current_fiscal_year_begin", INTERVAL 1 YEAR) AND DATE_SUB("%current_fiscal_year_end", INTERVAL 1 YEAR)
                   AND ctrb.contribution_status_id = 1
               GROUP BY
                 donors.related_contact_id
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',        
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
             (
@@ -1968,8 +1968,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   INNER JOIN civicrm_contribution cont1
                 WHERE
                   r.is_active
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND (
                     (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
                     OR
@@ -1984,18 +1984,18 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   civicrm_contribution
                 WHERE
                   contact_id = NEW.contact_id_a
-                  AND financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND CAST(receive_date AS DATE) BETWEEN DATE_SUB("%current_fiscal_year_begin", INTERVAL 1 YEAR) AND DATE_SUB("%current_fiscal_year_end", INTERVAL 1 YEAR)
                   AND contribution_status_id = 1
               ) t
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
             (
@@ -2009,8 +2009,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   INNER JOIN civicrm_contribution cont1
                 WHERE
                   r.is_active
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND (
                     (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
                     OR
@@ -2025,12 +2025,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   civicrm_contribution
                 WHERE
                   contact_id = NEW.contact_id_b
-                  AND financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND CAST(receive_date AS DATE) BETWEEN DATE_SUB("%current_fiscal_year_begin", INTERVAL 1 YEAR) AND DATE_SUB("%current_fiscal_year_end", INTERVAL 1 YEAR)
                   AND contribution_status_id = 1
               ) t
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
     ),
@@ -2038,12 +2038,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['relatedcontrib_plusme_last_calendar_year'] = array(
-    'label' => msumfields_ts('Combined contact & related contact contributions last calendar year'),
+    'label' => jsumfields_ts('Combined contact & related contact contributions last calendar year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => _msumfields_sql_rewrite('
+    'trigger_sql' => _jsumfields_sql_rewrite('
     (
       select coalesce(sum(total_amount)) as total from
         (
@@ -2063,9 +2063,9 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
             from civicrm_contribution ctrb
         ) t
         where
-          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids, 0)
+          t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids, 0)
           and t.is_active
-          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
           AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
           AND t.contribution_status_id = 1
           AND contact_id_a = NEW.contact_id
@@ -2073,11 +2073,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'msumfields_extra' => array(
+    'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
           SELECT t.related_contact_id, t.total
           FROM
             (
@@ -2097,11 +2097,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                         civicrm_relationship r
                       WHERE 
                         NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                        AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                        AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                         AND r.is_active
                     ) t
                     INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
-                      AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                      AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                       AND r.is_active
                   UNION
                   -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
@@ -2111,26 +2111,26 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_relationship r
                   WHERE 
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                    AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) donors
                 LEFT JOIN civicrm_contribution ctrb 
                   ON (
                     ctrb.contact_id = donors.donor_contact_id
                   )
-                  and ctrb.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND YEAR(CAST(ctrb.receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
                   AND ctrb.contribution_status_id = 1
               GROUP BY
                 donors.related_contact_id
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',        
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
             (
@@ -2144,8 +2144,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   INNER JOIN civicrm_contribution cont1
                 WHERE
                   r.is_active
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND (
                     (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
                     OR
@@ -2160,18 +2160,18 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   civicrm_contribution
                 WHERE
                   contact_id = NEW.contact_id_a
-                  AND financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
                   AND contribution_status_id = 1
               ) t
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
             (
@@ -2185,8 +2185,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   INNER JOIN civicrm_contribution cont1
                 WHERE
                   r.is_active
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND (
                     (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
                     OR
@@ -2201,12 +2201,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   civicrm_contribution
                 WHERE
                   contact_id = NEW.contact_id_b
-                  AND financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
                   AND contribution_status_id = 1
               ) t
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
     ),
@@ -2214,12 +2214,12 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['relatedcontrib_plusme_alltime'] = array(
-    'label' => msumfields_ts('Combined contact & related contact contributions all time'),
+    'label' => jsumfields_ts('Combined contact & related contact contributions all time'),
     'data_type' => 'Money',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
-    'trigger_sql' => _msumfields_sql_rewrite('
+    'trigger_sql' => _jsumfields_sql_rewrite('
     (
       select coalesce(sum(total_amount)) as total from
         (
@@ -2239,20 +2239,20 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
             from civicrm_contribution ctrb
         ) t
         where
-          t.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids, 0)
+          t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids, 0)
           and t.is_active
-          and t.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+          and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
           AND t.contribution_status_id = 1
           AND contact_id_a = NEW.contact_id
         group by contact_id_a
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'msumfields_extra' => array(
+    'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
           SELECT t.related_contact_id, t.total
           FROM
             (
@@ -2272,11 +2272,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                         civicrm_relationship r
                       WHERE 
                         NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                        AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                        AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                         AND r.is_active
                     ) t
                     INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
-                      AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                      AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                       AND r.is_active
                   UNION
                   -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
@@ -2286,25 +2286,25 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_relationship r
                   WHERE 
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                    AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
+                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) donors
                 LEFT JOIN civicrm_contribution ctrb 
                   ON (
                     ctrb.contact_id = donors.donor_contact_id
                   )
-                  and ctrb.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND ctrb.contribution_status_id = 1
               GROUP BY
                 donors.related_contact_id
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',        
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
             (
@@ -2318,8 +2318,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   INNER JOIN civicrm_contribution cont1
                 WHERE
                   r.is_active
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND (
                     (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
                     OR
@@ -2333,17 +2333,17 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   civicrm_contribution
                 WHERE
                   contact_id = NEW.contact_id_a
-                  AND financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND contribution_status_id = 1
               ) t
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
-          INSERT INTO %%msumfields_custom_table_name (entity_id, %%msumfields_custom_column_name)
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
             (
@@ -2357,8 +2357,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   INNER JOIN civicrm_contribution cont1
                 WHERE
                   r.is_active
-                  AND r.relationship_type_id in (%msumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND (
                     (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
                     OR
@@ -2372,11 +2372,11 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
                   civicrm_contribution
                 WHERE
                   contact_id = NEW.contact_id_b
-                  AND financial_type_id in (%msumfields_relatedcontrib_financial_type_ids)
+                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
                   AND contribution_status_id = 1
               ) t
             ) t
-          ON DUPLICATE KEY UPDATE %%msumfields_custom_column_name = t.total;
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
       ),
     ),
@@ -2413,8 +2413,8 @@ function msumfields_civicrm_sumfields_definitions(&$custom) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_config
  */
-function msumfields_civicrm_config(&$config) {
-  _msumfields_civix_civicrm_config($config);
+function jsumfields_civicrm_config(&$config) {
+  _jsumfields_civix_civicrm_config($config);
 }
 
 /**
@@ -2422,8 +2422,8 @@ function msumfields_civicrm_config(&$config) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_xmlMenu
  */
-function msumfields_civicrm_xmlMenu(&$files) {
-  _msumfields_civix_civicrm_xmlMenu($files);
+function jsumfields_civicrm_xmlMenu(&$files) {
+  _jsumfields_civix_civicrm_xmlMenu($files);
 }
 
 /**
@@ -2431,8 +2431,8 @@ function msumfields_civicrm_xmlMenu(&$files) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
  */
-function msumfields_civicrm_install() {
-  _msumfields_civix_civicrm_install();
+function jsumfields_civicrm_install() {
+  _jsumfields_civix_civicrm_install();
 }
 
 /**
@@ -2440,8 +2440,8 @@ function msumfields_civicrm_install() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_postInstall
  */
-function msumfields_civicrm_postInstall() {
-  _msumfields_civix_civicrm_postInstall();
+function jsumfields_civicrm_postInstall() {
+  _jsumfields_civix_civicrm_postInstall();
 }
 
 /**
@@ -2449,8 +2449,8 @@ function msumfields_civicrm_postInstall() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
  */
-function msumfields_civicrm_uninstall() {
-  _msumfields_civix_civicrm_uninstall();
+function jsumfields_civicrm_uninstall() {
+  _jsumfields_civix_civicrm_uninstall();
 }
 
 /**
@@ -2458,8 +2458,8 @@ function msumfields_civicrm_uninstall() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
  */
-function msumfields_civicrm_enable() {
-  _msumfields_civix_civicrm_enable();
+function jsumfields_civicrm_enable() {
+  _jsumfields_civix_civicrm_enable();
 }
 
 /**
@@ -2467,8 +2467,8 @@ function msumfields_civicrm_enable() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
  */
-function msumfields_civicrm_disable() {
-  _msumfields_civix_civicrm_disable();
+function jsumfields_civicrm_disable() {
+  _jsumfields_civix_civicrm_disable();
 }
 
 /**
@@ -2476,8 +2476,8 @@ function msumfields_civicrm_disable() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_upgrade
  */
-function msumfields_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _msumfields_civix_civicrm_upgrade($op, $queue);
+function jsumfields_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
+  return _jsumfields_civix_civicrm_upgrade($op, $queue);
 }
 
 /**
@@ -2488,8 +2488,8 @@ function msumfields_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_managed
  */
-function msumfields_civicrm_managed(&$entities) {
-  _msumfields_civix_civicrm_managed($entities);
+function jsumfields_civicrm_managed(&$entities) {
+  _jsumfields_civix_civicrm_managed($entities);
 }
 
 /**
@@ -2501,8 +2501,8 @@ function msumfields_civicrm_managed(&$entities) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_caseTypes
  */
-function msumfields_civicrm_caseTypes(&$caseTypes) {
-  _msumfields_civix_civicrm_caseTypes($caseTypes);
+function jsumfields_civicrm_caseTypes(&$caseTypes) {
+  _jsumfields_civix_civicrm_caseTypes($caseTypes);
 }
 
 /**
@@ -2515,8 +2515,8 @@ function msumfields_civicrm_caseTypes(&$caseTypes) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_angularModules
  */
-function msumfields_civicrm_angularModules(&$angularModules) {
-  _msumfields_civix_civicrm_angularModules($angularModules);
+function jsumfields_civicrm_angularModules(&$angularModules) {
+  _jsumfields_civix_civicrm_angularModules($angularModules);
 }
 
 /**
@@ -2524,8 +2524,8 @@ function msumfields_civicrm_angularModules(&$angularModules) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterSettingsFolders
  */
-function msumfields_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
-  _msumfields_civix_civicrm_alterSettingsFolders($metaDataFolders);
+function jsumfields_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
+  _jsumfields_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
 // --- Functions below this ship commented out. Uncomment as required. ---
@@ -2535,7 +2535,7 @@ function msumfields_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_preProcess
  *
-  function msumfields_civicrm_preProcess($formName, &$form) {
+  function jsumfields_civicrm_preProcess($formName, &$form) {
 
   } // */
 
@@ -2544,16 +2544,16 @@ function msumfields_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
  *
-  function msumfields_civicrm_navigationMenu(&$menu) {
-  _msumfields_civix_insert_navigation_menu($menu, NULL, array(
-  'label' => ts('The Page', array('domain' => 'com.joineryhq.msumfields')),
+  function jsumfields_civicrm_navigationMenu(&$menu) {
+  _jsumfields_civix_insert_navigation_menu($menu, NULL, array(
+  'label' => ts('The Page', array('domain' => 'com.joineryhq.jsumfields')),
   'name' => 'the_page',
   'url' => 'civicrm/the-page',
   'permission' => 'access CiviReport,access CiviContribute',
   'operator' => 'OR',
   'separator' => 0,
   ));
-  _msumfields_civix_navigationMenu($menu);
+  _jsumfields_civix_navigationMenu($menu);
   } // */
 
 /**
@@ -2562,9 +2562,9 @@ function msumfields_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  * @param array $params Any replacement parameters.
  * @return string The translated string.
  */
-function msumfields_ts($text, $params = array()) {
+function jsumfields_ts($text, $params = array()) {
   if (!array_key_exists('domain', $params)) {
-    $params['domain'] = 'com.joineryhq.msumfields';
+    $params['domain'] = 'com.joineryhq.jsumfields';
   }
   return ts($text, $params);
 }
@@ -2572,14 +2572,14 @@ function msumfields_ts($text, $params = array()) {
 /**
  * Implements hook_civicrm_triggerInfo().
  */
-function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
-  if (!CRM_Msumfields_Upgrader::checkDependency('net.ourpowerbase.sumfields')) {
+function jsumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
+  if (!CRM_Jsumfields_Upgrader::checkDependency('net.ourpowerbase.sumfields')) {
     // If sumfields is not enabled, don't define any of our own triggers, since
     // any custom fields they point at are now non-existent.
     return;
   }
 
-  // If any enabled fields have 'msumfields_extra' defined, formulate
+  // If any enabled fields have 'jsumfields_extra' defined, formulate
   // a trigger for them and add to $info.
   // Our triggers all use custom fields. CiviCRM, when generating
   // custom fields, sometimes gives them different names (appending
@@ -2592,9 +2592,9 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
 
   // Load the field and group definitions because we need the trigger
   // clause that is stored here.
-  // Only get msumfields definitions.
+  // Only get jsumfields definitions.
   $custom = array();
-  msumfields_civicrm_sumfields_definitions($custom);
+  jsumfields_civicrm_sumfields_definitions($custom);
 
   // We create a trigger sql statement for each table that should
   // have a trigger
@@ -2612,9 +2612,9 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
       continue;
     }
 
-    // Set up variables to add triggers for msumfields_extra.
-    if (!empty($custom['fields'][$base_column_name]['msumfields_extra'])) {
-      foreach ($custom['fields'][$base_column_name]['msumfields_extra'] as $extra) {
+    // Set up variables to add triggers for jsumfields_extra.
+    if (!empty($custom['fields'][$base_column_name]['jsumfields_extra'])) {
+      foreach ($custom['fields'][$base_column_name]['jsumfields_extra'] as $extra) {
 
         $triggerSql = CRM_Utils_Array::value('trigger_sql', $extra);
         $customTriggerTableName = CRM_Utils_Array::value('trigger_table', $extra);
@@ -2634,8 +2634,8 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
           continue;
         }
 
-        $trigger = _msumfields_sql_rewrite_with_custom_params($triggerSql, $params['column_name'], $sumfieldsCustomTableName);
-        $trigger = sumfields_sql_rewrite(_msumfields_sql_rewrite($trigger));
+        $trigger = _jsumfields_sql_rewrite_with_custom_params($triggerSql, $params['column_name'], $sumfieldsCustomTableName);
+        $trigger = sumfields_sql_rewrite(_jsumfields_sql_rewrite($trigger));
 
         // If we fail to properly rewrite the sql, don't set the trigger
         // to avoid sql exceptions.
@@ -2683,7 +2683,7 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
      * want any triggers on it. So remove any triggers that may have been
      * defined for it.
      */
-    if ($triggerInfo['table'] == 'civicrm_msumfields_placeholder') {
+    if ($triggerInfo['table'] == 'civicrm_jsumfields_placeholder') {
       unset($info[$id]);
     }
   }
@@ -2694,7 +2694,7 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
  *
  * @return array Suitable for a select field.
  */
-function _msumfields_get_all_relationship_types() {
+function _jsumfields_get_all_relationship_types() {
   $relationshipTypes = array();
   $result = civicrm_api3('relationshipType', 'get', array(
     'options' => array(
@@ -2715,7 +2715,7 @@ function _msumfields_get_all_relationship_types() {
  *
  * @return array Suitable for a select field.
  */
-function _msumfields_get_all_grant_statuses() {
+function _jsumfields_get_all_grant_statuses() {
   $grantStatuses = array();
   $result = civicrm_api3('OptionValue', 'get', array(
     'sequential' => 1,
@@ -2732,7 +2732,7 @@ function _msumfields_get_all_grant_statuses() {
  *
  * @return array Suitable for a select field.
  */
-function _msumfields_get_all_grant_types() {
+function _jsumfields_get_all_grant_types() {
   $grantStatuses = array();
   $result = civicrm_api3('OptionValue', 'get', array(
     'sequential' => 1,
@@ -2745,55 +2745,55 @@ function _msumfields_get_all_grant_types() {
 }
 
 /**
- * Replace msumfields %variables with the appropriate values. NOTE: this function
- * does NOT call msumfields_sql_rewrite().
+ * Replace jsumfields %variables with the appropriate values. NOTE: this function
+ * does NOT call jsumfields_sql_rewrite().
  *
  * @return string Modified $sql.
  */
-function _msumfields_sql_rewrite($sql) {
+function _jsumfields_sql_rewrite($sql) {
   // Note: most of these token replacements fill in a sql IN statement,
   // e.g. field_name IN (%token). That means if the token is empty, we
   // get a SQL error. So... for each of these, if the token is empty,
   // we fill it with all possible values at the moment. If a new option
   // is added, summary fields will have to be re-configured.
 
-  // Replace %msumfields_relatedcontrib_relationship_type_ids
-  $ids = sumfields_get_setting('msumfields_relatedcontrib_relationship_type_ids', array());
+  // Replace %jsumfields_relatedcontrib_relationship_type_ids
+  $ids = sumfields_get_setting('jsumfields_relatedcontrib_relationship_type_ids', array());
   if (count($ids) == 0) {
-    $ids = array_keys(_msumfields_get_all_relationship_types());
+    $ids = array_keys(_jsumfields_get_all_relationship_types());
   }
   $str_ids = implode(',', $ids);
-  $sql = str_replace('%msumfields_relatedcontrib_relationship_type_ids', $str_ids, $sql);
+  $sql = str_replace('%jsumfields_relatedcontrib_relationship_type_ids', $str_ids, $sql);
 
-  // Replace %msumfields_relatedcontrib_financial_type_ids
-  $ids = sumfields_get_setting('msumfields_relatedcontrib_financial_type_ids', array());
+  // Replace %jsumfields_relatedcontrib_financial_type_ids
+  $ids = sumfields_get_setting('jsumfields_relatedcontrib_financial_type_ids', array());
   if (count($ids) == 0) {
     $ids = array_keys(sumfields_get_all_financial_types());
   }
   $str_ids = implode(',', $ids);
-  $sql = str_replace('%msumfields_relatedcontrib_financial_type_ids', $str_ids, $sql);
+  $sql = str_replace('%jsumfields_relatedcontrib_financial_type_ids', $str_ids, $sql);
 
-  // Replace %msumfields_grant_status_ids
-  $ids = sumfields_get_setting('msumfields_grant_status_ids', array());
+  // Replace %jsumfields_grant_status_ids
+  $ids = sumfields_get_setting('jsumfields_grant_status_ids', array());
   if (count($ids) == 0) {
-    $ids = array_keys(_msumfields_get_all_grant_statuses());
+    $ids = array_keys(_jsumfields_get_all_grant_statuses());
   }
   $str_ids = implode(',', $ids);
-  $sql = str_replace('%msumfields_grant_status_ids', $str_ids, $sql);
+  $sql = str_replace('%jsumfields_grant_status_ids', $str_ids, $sql);
 
-  // Replace %msumfields_grant_type_ids
-  $ids = sumfields_get_setting('msumfields_grant_type_ids', array());
+  // Replace %jsumfields_grant_type_ids
+  $ids = sumfields_get_setting('jsumfields_grant_type_ids', array());
   if (count($ids) == 0) {
-    $ids = array_keys(_msumfields_get_all_grant_types());
+    $ids = array_keys(_jsumfields_get_all_grant_types());
   }
   $str_ids = implode(',', $ids);
-  $sql = str_replace('%msumfields_grant_type_ids', $str_ids, $sql);
+  $sql = str_replace('%jsumfields_grant_type_ids', $str_ids, $sql);
 
   return $sql;
 }
 
 /**
- * Update our own trigger data, as needed (some msumfields, such as the "Related
+ * Update our own trigger data, as needed (some jsumfields, such as the "Related
  * Contributions" group, aren't fully supported by sumfields, so we do the extra
  * work here).
  *
@@ -2807,7 +2807,7 @@ function _msumfields_sql_rewrite($sql) {
  * @return bool
  *   TRUE if successful, FALSE otherwise
  */
-function _msumfields_generate_data_based_on_current_data($session = NULL) {
+function _jsumfields_generate_data_based_on_current_data($session = NULL) {
   // Get the actual table name for summary fields.
   $sumfieldsCustomTableName = _sumfields_get_custom_table_name();
 
@@ -2823,11 +2823,11 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
     return FALSE;
   }
 
-  // Load the field and group definitions because we need the msumfields_trigger_sql_*
+  // Load the field and group definitions because we need the jsumfields_trigger_sql_*
   // properties that are stored here.
-  // Only get msumfields definitions.
+  // Only get jsumfields definitions.
   $custom = array();
-  msumfields_civicrm_sumfields_definitions($custom);
+  jsumfields_civicrm_sumfields_definitions($custom);
 
   $active_fields = sumfields_get_setting('active_fields', array());
 
@@ -2840,13 +2840,13 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
       !in_array($base_column_name, $active_fields) 
       ||
       // The full update query is not defined.
-      empty($custom['fields'][$base_column_name]['msumfields_update_sql'])
+      empty($custom['fields'][$base_column_name]['jsumfields_update_sql'])
     ) {
       continue;
     }
     
-    $updateQuery = _msumfields_sql_rewrite_with_custom_params($custom['fields'][$base_column_name]['msumfields_update_sql'], $params['column_name'], $sumfieldsCustomTableName);
-    $updateQuery = _msumfields_sql_rewrite($updateQuery);
+    $updateQuery = _jsumfields_sql_rewrite_with_custom_params($custom['fields'][$base_column_name]['jsumfields_update_sql'], $params['column_name'], $sumfieldsCustomTableName);
+    $updateQuery = _jsumfields_sql_rewrite($updateQuery);
     $updateQuery = sumfields_sql_rewrite($updateQuery);
 
     if (FALSE === $updateQuery) {
@@ -2866,8 +2866,8 @@ function _msumfields_generate_data_based_on_current_data($session = NULL) {
  *
  * @return string Modified $sql.
  */
-function _msumfields_sql_rewrite_with_custom_params($sql, $columnName, $tableName) {
-  $sql = str_replace('%%msumfields_custom_table_name', $tableName, $sql);
-  $sql = str_replace('%%msumfields_custom_column_name', $columnName, $sql);
+function _jsumfields_sql_rewrite_with_custom_params($sql, $columnName, $tableName) {
+  $sql = str_replace('%%jsumfields_custom_table_name', $tableName, $sql);
+  $sql = str_replace('%%jsumfields_custom_column_name', $columnName, $sql);
   return $sql;
 }

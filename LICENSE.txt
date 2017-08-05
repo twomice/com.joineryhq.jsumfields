@@ -1,4 +1,4 @@
-Package: com.joineryhq.msumfields
+Package: com.joineryhq.jsumfields
 Copyright (C) 2017, Allen Shaw <allen@JoineryHQ.com>
 Licensed under GNU General Public License v3.0 only (below).
 
