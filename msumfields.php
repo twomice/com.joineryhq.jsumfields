@@ -2646,52 +2646,6 @@ function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
 
       }
     }
-
-    // Set up variables to add triggers for msumfields_trigger_sql_base.
-    if (
-      !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_base'])
-      && !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_base_alias'])
-      && !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias'])
-      && !empty($custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias'])
-    ) {
-      $customTriggerTableName = $custom['fields'][$base_column_name]['trigger_table'];
-      $triggerSqlBase = $custom['fields'][$base_column_name]['msumfields_trigger_sql_base'];
-
-      if (empty($triggerTableName) || $triggerTableName == $customTriggerTableName) {
-        // if triggerInfo is called with a particular table name, we should
-        // only respond if we are contributing triggers to that table.
-        if (empty($triggers[$customTriggerTableName])) {
-          $triggers[$customTriggerTableName] = '';
-        }
-
-        $baseAlias = $custom['fields'][$base_column_name]['msumfields_trigger_sql_base_alias'];
-        $triggerLimiter = CRM_Utils_Array::value('msumfields_trigger_sql_limiter', $custom['fields'][$base_column_name]);
-
-        $trigger = "
-          INSERT INTO `$sumfieldsCustomTableName` (entity_id, `{$params['column_name']}`)
-          SELECT
-            {$baseAlias}.{$custom['fields'][$base_column_name]['msumfields_trigger_sql_entity_alias']},
-            {$baseAlias}.{$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
-          FROM
-            ({$triggerSqlBase}) {$baseAlias}
-          {$triggerLimiter}
-          ON DUPLICATE KEY UPDATE `{$params['column_name']}` = {$baseAlias}.{$custom['fields'][$base_column_name]['msumfields_trigger_sql_value_alias']}
-        ";
-
-        $trigger = sumfields_sql_rewrite(_msumfields_sql_rewrite($trigger));
-
-        // If we fail to properly rewrite the sql, don't set the trigger
-        // to avoid sql exceptions.
-        if (FALSE === $trigger) {
-          $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
-          $session->setStatus($msg);
-        }
-        else {
-          $trigger = rtrim(rtrim($trigger), ';');
-          $triggers[$customTriggerTableName] .= "{$trigger};\n";
-        }
-      }
-    }
   }
 
   foreach ($triggers as $customTriggerTableName => $sql) {
