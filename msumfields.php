@@ -78,9 +78,10 @@ function msumfields_civicrm_postProcess($formName, &$form) {
  * Implements hook_civicrm_sumfields_definitions().
  *
  * NOTE: Array properties in $custom named 'msumfields_*' will be used by
- * msumfields_civicrm_triggerInfo() to build the "real" trggers, and by
- * _msumfields_generate_data_based_on_current_data() to populate the "real"
- * values.
+ * msumfields_civicrm_triggerInfo() to build triggers, and by
+ * _msumfields_generate_data_based_on_current_data() to populate field values.
+ * 
+ * See DEVNOTES.md for supported 'msumfields_*' properties.
  */
 function msumfields_civicrm_sumfields_definitions(&$custom) {
   // Adjust some labels in summary fields to be more explicit.
@@ -2568,6 +2569,9 @@ function msumfields_ts($text, $params = array()) {
   return ts($text, $params);
 }
 
+/**
+ * Implements hook_civicrm_triggerInfo().
+ */
 function msumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
   if (!CRM_Msumfields_Upgrader::checkDependency('net.ourpowerbase.sumfields')) {
     // If sumfields is not enabled, don't define any of our own triggers, since
@@ -2707,7 +2711,7 @@ function _msumfields_get_all_relationship_types() {
 }
 
 /**
- * Get all available relationship types; a simple wrapper around the CiviCRM API.
+ * Get all available grant statuses; a simple wrapper around the CiviCRM API.
  *
  * @return array Suitable for a select field.
  */
@@ -2724,7 +2728,7 @@ function _msumfields_get_all_grant_statuses() {
 }
 
 /**
- * Get all available relationship types; a simple wrapper around the CiviCRM API.
+ * Get all available grant types; a simple wrapper around the CiviCRM API.
  *
  * @return array Suitable for a select field.
  */
@@ -2866,8 +2870,4 @@ function _msumfields_sql_rewrite_with_custom_params($sql, $columnName, $tableNam
   $sql = str_replace('%%msumfields_custom_table_name', $tableName, $sql);
   $sql = str_replace('%%msumfields_custom_column_name', $columnName, $sql);
   return $sql;
-}
-
-function _msumfields_strip_nontrigger_lines($sql) {
-  return preg_replace('/[^\n]*\bMSUMFIELDS_LINE_TRIGGER_ONLY\b[^\n]*\n/', '', $sql);
 }
