@@ -1,4 +1,5 @@
 # More Summary Fields
+## ReadMe
 
 Provides additional fields under the [Summary Fields](https://civicrm.org/extensions/summary-fields) framework.
 
@@ -35,3 +36,6 @@ This extension currently provides the following fields:
 * CiviGrant: Total number of grants received
 * CiviGrant: Total $ in grants received
 * CiviGrant: Grant types received
+
+## Developer notes
+See DEVNOTES.md.
