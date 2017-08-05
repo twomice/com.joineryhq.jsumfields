@@ -26,22 +26,22 @@ function jsumfields_civicrm_buildForm($formName, &$form) {
 
     // Create a field for Financial Types on related contributions.
     $label = jsumfields_ts('Financial Types');
-    $form->add('select', 'jsumfields_relatedcontrib_financial_type_ids', $label, sumfields_get_all_financial_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $form->add('select', 'jsumfields_relatedcontrib_financial_type_ids', $label, sumfields_get_all_financial_types(), FALSE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
     $fieldsets[$custom['optgroups']['relatedcontrib']['fieldset']]['jsumfields_relatedcontrib_financial_type_ids'] = jsumfields_ts('Financial types to be used when calculating Related Contribution summary fields.');
 
     // Create a field for Relationship Types on related contributions.
     $label = jsumfields_ts('Relationship Types');
-    $form->add('select', 'jsumfields_relatedcontrib_relationship_type_ids', $label, _jsumfields_get_all_relationship_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $form->add('select', 'jsumfields_relatedcontrib_relationship_type_ids', $label, _jsumfields_get_all_relationship_types(), FALSE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
     $fieldsets[$custom['optgroups']['relatedcontrib']['fieldset']]['jsumfields_relatedcontrib_relationship_type_ids'] = jsumfields_ts('Relationship types to be used when calculating Related Contribution summary fields.');
 
     // Create a field for Grant Status on grant fields.
     $label = jsumfields_ts('Grant Statuses');
-    $form->add('select', 'jsumfields_grant_status_ids', $label, _jsumfields_get_all_grant_statuses(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $form->add('select', 'jsumfields_grant_status_ids', $label, _jsumfields_get_all_grant_statuses(), FALSE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
     $fieldsets[$custom['optgroups']['civigrant']['fieldset']]['jsumfields_grant_status_ids'] = jsumfields_ts('Grant statuses to be used when calculating Grant fields.');
 
     // Create a field for Grant Type on grant fields.
     $label = jsumfields_ts('Grant Types');
-    $form->add('select', 'jsumfields_grant_type_ids', $label, _jsumfields_get_all_grant_types(), TRUE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $form->add('select', 'jsumfields_grant_type_ids', $label, _jsumfields_get_all_grant_types(), FALSE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
     $fieldsets[$custom['optgroups']['civigrant']['fieldset']]['jsumfields_grant_type_ids'] = jsumfields_ts('Grant types to be used when calculating Grant fields.');
 
     // Set defaults.
