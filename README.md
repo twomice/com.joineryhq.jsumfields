@@ -1,4 +1,4 @@
-# More Summary Fields
+# Joinery's More Summary Fields
 ## ReadMe
 
 Provides additional fields under the [Summary Fields](https://civicrm.org/extensions/summary-fields) framework.

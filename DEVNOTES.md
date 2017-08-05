@@ -1,4 +1,4 @@
-# More Summary Fields
+# Joinery's More Summary Fields
 ## Developer Notes
 
 This extension's `hook_civicrm_sumfields_definitions()` implementation, 
