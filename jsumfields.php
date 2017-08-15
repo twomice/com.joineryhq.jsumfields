@@ -621,7 +621,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
   );
 
   $custom['fields']['mail_clickrate_alltime'] = array(
-    'label' => jsumfields_ts('Open click-through rate all time'),
+    'label' => jsumfields_ts('Click-through rate all time'),
     'data_type' => 'Float',
     'html_type' => 'Text',
     'weight' => '71',
