@@ -3,8 +3,8 @@
 require_once 'jsumfields.civix.php';
 
 /**
-  * Implements hook_civicrm_apiWrappers().
-  */
+ * Implements hook_civicrm_apiWrappers().
+ */
 function jsumfields_civicrm_apiWrappers(&$wrappers, $apiRequest) {
   if (strtolower($apiRequest['entity']) == 'sumfields' && strtolower($apiRequest['action']) == 'gendata') {
     $wrappers[] = new CRM_Jsumfields_APIWrapperSumfieldsGendata();
@@ -80,7 +80,7 @@ function jsumfields_civicrm_postProcess($formName, &$form) {
  * NOTE: Array properties in $custom named 'jsumfields_*' will be used by
  * jsumfields_civicrm_triggerInfo() to build triggers, and by
  * _jsumfields_generate_data_based_on_current_data() to populate field values.
- * 
+ *
  * See DEVNOTES.md for supported 'jsumfields_*' properties.
  */
 function jsumfields_civicrm_sumfields_definitions(&$custom) {
@@ -121,7 +121,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
       (
         SELECT
           count(*)
-        FROM 
+        FROM
           civicrm_grant g
         WHERE
           g.contact_id = NEW.contact_id
@@ -143,7 +143,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
       (
         SELECT
           coalesce(sum(g.amount_granted), 0)
-        FROM 
+        FROM
           civicrm_grant g
         WHERE
           g.contact_id = NEW.contact_id
@@ -165,20 +165,20 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
       (
         SELECT
           GROUP_CONCAT(
-            DISTINCT ov.label 
+            DISTINCT ov.label
             ORDER BY ov.label
             SEPARATOR ", "
           )
-        FROM 
+        FROM
           civicrm_grant g
           INNER JOIN civicrm_option_value ov ON ov.value = g.grant_type_id
-          INNER JOIN civicrm_option_group og 
-            ON og.id = ov.option_group_id 
+          INNER JOIN civicrm_option_group og
+            ON og.id = ov.option_group_id
             AND og.name = "grant_type"
         WHERE
           g.contact_id = NEW.contact_id
           AND g.status_id in (%jsumfields_grant_status_ids)
-          AND g.grant_type_id in (%jsumfields_grant_type_ids)          
+          AND g.grant_type_id in (%jsumfields_grant_type_ids)
       )
     '),
     'trigger_table' => 'civicrm_grant',
@@ -620,6 +620,62 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     'optgroup' => 'civimail',
   );
 
+  $mail_clickrate_alltime_jsumfields_extra_trigger_sql = '
+
+    -- Of all emails in which there is a link, which this contact opened:
+    -- in how many of those emails did this contact click a link?
+    -- In other words:
+    -- Click-through rate  = U / (S - B)
+    --   U = number of distinct trackable URLs opened by this contact.
+    --   S = number of emails-with-trackable-links sent to this contact.
+    --   B = number of bounced emails-with-trackable-links sent to this contact.
+
+    INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
+    SELECT t.contact_id, t.rate
+    FROM (
+      SELECT
+        s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+      FROM
+      (
+        -- total mailings-with-trackable-links sent to contact
+        SELECT q.contact_id, count(*) as sent
+        FROM
+          civicrm_mailing_event_queue q
+          INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q.id
+          INNER JOIN civicrm_mailing_job j ON q.job_id = j.id
+          INNER JOIN civicrm_mailing_trackable_url u ON u.mailing_id = j.mailing_id
+        WHERE
+          q.id = NEW.event_queue_id
+        GROUP BY
+          q.contact_id
+      ) s
+      LEFT JOIN (
+        -- total trackable urls opened
+        SELECT q.contact_id, count(*) as opened
+        FROM
+          civicrm_mailing_event_queue q
+          INNER JOIN civicrm_mailing_event_trackable_url_open o ON o.event_queue_id = q.id
+        WHERE
+          q.id = NEW.event_queue_id
+        GROUP BY
+          q.contact_id
+      ) o ON o.contact_id = s.contact_id
+      LEFT JOIN (
+        -- total mailings-with-trackable-links bounced
+        SELECT q.contact_id, count(*) as bounced
+        FROM
+          civicrm_mailing_event_queue q
+          INNER JOIN civicrm_mailing_job j ON q.job_id = j.id
+          INNER JOIN civicrm_mailing_trackable_url u ON u.mailing_id = j.mailing_id
+          INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q.id
+        WHERE
+          q.id = NEW.event_queue_id
+        GROUP BY
+          q.contact_id
+      ) b ON b.contact_id = s.contact_id
+    ) t
+    ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
+  ';
   $custom['fields']['mail_clickrate_alltime'] = array(
     'label' => jsumfields_ts('Click-through rate all time'),
     'data_type' => 'Float',
@@ -629,6 +685,15 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     'trigger_table' => 'civicrm_jsumfields_placeholder',
     'trigger_sql' => '""',
     'jsumfields_update_sql' => '
+
+      -- Of all emails in which there is a link, which this contact opened:
+      -- in how many of those emails did this contact click a link?
+      -- In other words:
+      -- Click-through rate  = U / (S - B)
+      --   U = number of distinct trackable URLs opened by this contact.
+      --   S = number of emails-with-trackable-links sent to this contact.
+      --   B = number of bounced emails-with-trackable-links sent to this contact.
+
       INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
         SELECT t.contact_id, t.rate
         FROM
@@ -637,43 +702,41 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
           FROM
           (
-            -- total mailings sent to contact
-            SELECT q2.contact_id, count(*) as sent
+            -- total mailings-with-trackable-links sent to contact
+            SELECT q.contact_id, count(*) as sent
             FROM
-              civicrm_mailing_event_queue q1
-              INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
-              INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
-              INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
+              civicrm_mailing_event_queue q
+              INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q.id
+              INNER JOIN civicrm_mailing_job j ON q.job_id = j.id
+              INNER JOIN civicrm_mailing_trackable_url u ON u.mailing_id = j.mailing_id
             WHERE
               1
             GROUP BY
-              q2.contact_id
+              q.contact_id
           ) s
           LEFT JOIN (
-            -- total traackable urls opened
-            SELECT q2.contact_id, count(*) as opened
+            -- total trackable urls opened
+            SELECT q.contact_id, count(*) as opened
             FROM
-              civicrm_mailing_event_queue q1
-              INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
-              INNER JOIN civicrm_mailing_event_trackable_url_open o ON o.event_queue_id = q2.id
-              INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
+              civicrm_mailing_event_queue q
+              INNER JOIN civicrm_mailing_event_trackable_url_open o ON o.event_queue_id = q.id
             WHERE
               1
             GROUP BY
-              q2.contact_id
+              q.contact_id
           ) o ON o.contact_id = s.contact_id
           LEFT JOIN (
-            -- total mailings bounced
-            SELECT q2.contact_id, count(*) as bounced
+            -- total mailings-with-trackable-links bounced
+            SELECT q.contact_id, count(*) as bounced
             FROM
-              civicrm_mailing_event_queue q1
-              INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
-              INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
-              INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
+              civicrm_mailing_event_queue q
+              INNER JOIN civicrm_mailing_job j ON q.job_id = j.id
+              INNER JOIN civicrm_mailing_trackable_url u ON u.mailing_id = j.mailing_id
+              INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q.id
             WHERE
               1
             GROUP BY
-              q2.contact_id
+              q.contact_id
           ) b ON b.contact_id = s.contact_id
         ) t
       ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
@@ -681,156 +744,15 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_mailing_event_delivered',
-        'trigger_sql' => '
-          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
-              SELECT t.contact_id, t.rate
-              FROM
-                (
-                SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
-                FROM
-                (
-                  -- total mailings sent to contact
-                  SELECT q2.contact_id, count(*) as sent
-                  FROM
-                    civicrm_mailing_event_queue q1
-                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
-                    INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
-                    INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
-                  WHERE
-                    q1.id = NEW.event_queue_id
-                  GROUP BY
-                    q2.contact_id
-                ) s
-                LEFT JOIN (
-                  -- total traackable urls opened
-                  SELECT q2.contact_id, count(*) as opened
-                  FROM
-                    civicrm_mailing_event_queue q1
-                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
-                    INNER JOIN civicrm_mailing_event_trackable_url_open o ON o.event_queue_id = q2.id
-                    INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
-                  WHERE
-                    q1.id = NEW.event_queue_id
-                  GROUP BY
-                    q2.contact_id
-                ) o ON o.contact_id = s.contact_id
-                LEFT JOIN (
-                  -- total mailings bounced
-                  SELECT q2.contact_id, count(*) as bounced
-                  FROM
-                    civicrm_mailing_event_queue q1
-                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
-                    INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
-                    INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
-                  WHERE
-                    q1.id = NEW.event_queue_id
-                  GROUP BY
-                    q2.contact_id
-                ) b ON b.contact_id = s.contact_id
-              ) t
-            ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
-        ',
+        'trigger_sql' => $mail_clickrate_alltime_jsumfields_extra_trigger_sql,
       ),
       array(
         'trigger_table' => 'civicrm_mailing_event_bounce',
-        'trigger_sql' => '
-          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
-              SELECT t.contact_id, t.rate
-              FROM
-                (
-                SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
-                FROM
-                (
-                  -- total mailings sent to contact
-                  SELECT q2.contact_id, count(*) as sent
-                  FROM
-                    civicrm_mailing_event_queue q1
-                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
-                    INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
-                  WHERE
-                    q1.id = NEW.event_queue_id
-                  GROUP BY
-                    q2.contact_id
-                ) s
-                LEFT JOIN (
-                  -- total traackable urls opened
-                  SELECT q2.contact_id, count(*) as opened
-                  FROM
-                    civicrm_mailing_event_queue q1
-                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
-                    INNER JOIN civicrm_mailing_event_trackable_url_open o ON o.event_queue_id = q2.id
-                  WHERE
-                    q1.id = NEW.event_queue_id
-                  GROUP BY
-                    q2.contact_id
-                ) o ON o.contact_id = s.contact_id
-                LEFT JOIN (
-                  -- total mailings bounced
-                  SELECT q2.contact_id, count(*) as bounced
-                  FROM
-                    civicrm_mailing_event_queue q1
-                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
-                    INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
-                  WHERE
-                    q1.id = NEW.event_queue_id
-                  GROUP BY
-                    q2.contact_id
-                ) b ON b.contact_id = s.contact_id
-              ) t
-            ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
-        ',
+        'trigger_sql' => $mail_clickrate_alltime_jsumfields_extra_trigger_sql,
       ),
       array(
         'trigger_table' => 'civicrm_mailing_event_trackable_url_open',
-        'trigger_sql' => '
-          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
-              SELECT t.contact_id, t.rate
-              FROM
-                (
-                SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
-                FROM
-                (
-                  -- total mailings sent to contact
-                  SELECT q2.contact_id, count(*) as sent
-                  FROM
-                    civicrm_mailing_event_queue q1
-                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
-                    INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
-                  WHERE
-                    q1.id = NEW.event_queue_id
-                  GROUP BY
-                    q2.contact_id
-                ) s
-                LEFT JOIN (
-                  -- total traackable urls opened
-                  SELECT q2.contact_id, count(*) as opened
-                  FROM
-                    civicrm_mailing_event_queue q1
-                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
-                    INNER JOIN civicrm_mailing_event_trackable_url_open o ON o.event_queue_id = q2.id
-                  WHERE
-                    q1.id = NEW.event_queue_id
-                  GROUP BY
-                    q2.contact_id
-                ) o ON o.contact_id = s.contact_id
-                LEFT JOIN (
-                  -- total mailings bounced
-                  SELECT q2.contact_id, count(*) as bounced
-                  FROM
-                    civicrm_mailing_event_queue q1
-                    INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
-                    INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
-                  WHERE
-                    q1.id = NEW.event_queue_id
-                  GROUP BY
-                    q2.contact_id
-                ) b ON b.contact_id = s.contact_id
-              ) t
-            ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
-        ',
+        'trigger_sql' => $mail_clickrate_alltime_jsumfields_extra_trigger_sql,
       ),
     ),
     'optgroup' => 'civimail',
@@ -1062,7 +984,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     NEW.contact_id, if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
                   from
                     civicrm_relationship r
-                  WHERE 
+                  WHERE
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                     AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
@@ -1078,7 +1000,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                 t.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        '
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -1187,7 +1109,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     NEW.contact_id, if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
                   from
                     civicrm_relationship r
-                  WHERE 
+                  WHERE
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                     AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
@@ -1203,7 +1125,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                 t.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        '
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -1312,7 +1234,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     NEW.contact_id, if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
                   from
                     civicrm_relationship r
-                  WHERE 
+                  WHERE
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                     AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
@@ -1328,7 +1250,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                 t.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        '
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -1436,7 +1358,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     NEW.contact_id, if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
                   from
                     civicrm_relationship r
-                  WHERE 
+                  WHERE
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                     AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
@@ -1451,7 +1373,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                 t.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        '
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -1567,7 +1489,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                         if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
                       from
                         civicrm_relationship r
-                      WHERE 
+                      WHERE
                         NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                         AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                         AND r.is_active
@@ -1581,12 +1503,12 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
                   from
                     civicrm_relationship r
-                  WHERE 
+                  WHERE
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                     AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) donors
-                LEFT JOIN civicrm_contribution ctrb 
+                LEFT JOIN civicrm_contribution ctrb
                   ON (
                     ctrb.contact_id = donors.donor_contact_id
                   )
@@ -1597,7 +1519,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                 donors.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',        
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -1743,7 +1665,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                         if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
                       from
                         civicrm_relationship r
-                      WHERE 
+                      WHERE
                         NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                         AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                         AND r.is_active
@@ -1757,12 +1679,12 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
                   from
                     civicrm_relationship r
-                  WHERE 
+                  WHERE
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                     AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) donors
-                LEFT JOIN civicrm_contribution ctrb 
+                LEFT JOIN civicrm_contribution ctrb
                   ON (
                     ctrb.contact_id = donors.donor_contact_id
                   )
@@ -1773,7 +1695,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                 donors.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',        
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -1919,7 +1841,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                         if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
                       from
                         civicrm_relationship r
-                      WHERE 
+                      WHERE
                         NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                         AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                         AND r.is_active
@@ -1933,12 +1855,12 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
                   from
                     civicrm_relationship r
-                  WHERE 
+                  WHERE
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                     AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) donors
-                LEFT JOIN civicrm_contribution ctrb 
+                LEFT JOIN civicrm_contribution ctrb
                   ON (
                     ctrb.contact_id = donors.donor_contact_id
                   )
@@ -1949,7 +1871,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                 donors.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',        
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -2095,7 +2017,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                         if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
                       from
                         civicrm_relationship r
-                      WHERE 
+                      WHERE
                         NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                         AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                         AND r.is_active
@@ -2109,12 +2031,12 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
                   from
                     civicrm_relationship r
-                  WHERE 
+                  WHERE
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                     AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) donors
-                LEFT JOIN civicrm_contribution ctrb 
+                LEFT JOIN civicrm_contribution ctrb
                   ON (
                     ctrb.contact_id = donors.donor_contact_id
                   )
@@ -2125,7 +2047,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                 donors.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',        
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -2270,7 +2192,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                         if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
                       from
                         civicrm_relationship r
-                      WHERE 
+                      WHERE
                         NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                         AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                         AND r.is_active
@@ -2284,12 +2206,12 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
                   from
                     civicrm_relationship r
-                  WHERE 
+                  WHERE
                     NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
                     AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                     AND r.is_active
                 ) donors
-                LEFT JOIN civicrm_contribution ctrb 
+                LEFT JOIN civicrm_contribution ctrb
                   ON (
                     ctrb.contact_id = donors.donor_contact_id
                   )
@@ -2299,7 +2221,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                 donors.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',        
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -2837,14 +2759,14 @@ function _jsumfields_generate_data_based_on_current_data($session = NULL) {
   foreach ($custom_fields as $base_column_name => $params) {
     if (
       // If the field is not enabled.
-      !in_array($base_column_name, $active_fields) 
+      !in_array($base_column_name, $active_fields)
       ||
       // The full update query is not defined.
       empty($custom['fields'][$base_column_name]['jsumfields_update_sql'])
     ) {
       continue;
     }
-    
+
     $updateQuery = _jsumfields_sql_rewrite_with_custom_params($custom['fields'][$base_column_name]['jsumfields_update_sql'], $params['column_name'], $sumfieldsCustomTableName);
     $updateQuery = _jsumfields_sql_rewrite($updateQuery);
     $updateQuery = sumfields_sql_rewrite($updateQuery);
