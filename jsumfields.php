@@ -950,7 +950,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION
+          UNION ALL
           select
             contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
           from
@@ -1075,7 +1075,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION
+          UNION ALL
           select
             contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
           from
@@ -1200,7 +1200,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION
+          UNION ALL
           select
             contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
           from
@@ -1325,7 +1325,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION
+          UNION ALL
           select
             contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
           from
@@ -1446,13 +1446,13 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION
+          UNION ALL
           select
             contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
-          UNION
+          UNION ALL
           select ctrb.contact_id, 0 as relationship_type_id, 1 as is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
             from civicrm_contribution ctrb
         ) t
@@ -1497,7 +1497,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
                       AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                       AND r.is_active
-                  UNION
+                  UNION ALL
                   -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
                   SELECT DISTINCT
                     if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
@@ -1547,7 +1547,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                   )
                   AND CAST(cont1.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
                   AND cont1.contribution_status_id = 1
-                UNION
+                UNION ALL
                 SELECT
                   total_amount
                 FROM
@@ -1588,7 +1588,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                   )
                   AND CAST(cont1.receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND "%current_fiscal_year_end"
                   AND cont1.contribution_status_id = 1
-                UNION
+                UNION ALL
                 SELECT
                   total_amount
                 FROM
@@ -1622,13 +1622,13 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION
+          UNION ALL
           select
             contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
-          UNION
+          UNION ALL
           select ctrb.contact_id, 0 as relationship_type_id, 1 as is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
             from civicrm_contribution ctrb
         ) t
@@ -1673,7 +1673,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
                       AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                       AND r.is_active
-                  UNION
+                  UNION ALL
                   -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
                   SELECT DISTINCT
                     if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
@@ -1723,7 +1723,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                   )
                   AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
                   AND cont1.contribution_status_id = 1
-                UNION
+                UNION ALL
                 SELECT
                   total_amount
                 FROM
@@ -1764,7 +1764,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                   )
                   AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
                   AND cont1.contribution_status_id = 1
-                UNION
+                UNION ALL
                 SELECT
                   total_amount
                 FROM
@@ -1798,13 +1798,13 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION
+          UNION ALL
           select
             contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
-          UNION
+          UNION ALL
           select ctrb.contact_id, 0 as relationship_type_id, 1 as is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
             from civicrm_contribution ctrb
         ) t
@@ -1849,7 +1849,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
                       AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                       AND r.is_active
-                  UNION
+                  UNION ALL
                   -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
                   SELECT DISTINCT
                     if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
@@ -1899,7 +1899,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                   )
                   AND CAST(cont1.receive_date AS DATE) BETWEEN DATE_SUB("%current_fiscal_year_begin", INTERVAL 1 YEAR) AND DATE_SUB("%current_fiscal_year_end", INTERVAL 1 YEAR)
                   AND cont1.contribution_status_id = 1
-                UNION
+                UNION ALL
                 SELECT
                   total_amount
                 FROM
@@ -1940,7 +1940,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                   )
                   AND CAST(cont1.receive_date AS DATE) BETWEEN DATE_SUB("%current_fiscal_year_begin", INTERVAL 1 YEAR) AND DATE_SUB("%current_fiscal_year_end", INTERVAL 1 YEAR)
                   AND cont1.contribution_status_id = 1
-                UNION
+                UNION ALL
                 SELECT
                   total_amount
                 FROM
@@ -1974,13 +1974,13 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION
+          UNION ALL
           select
             contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
-          UNION
+          UNION ALL
           select ctrb.contact_id, 0 as relationship_type_id, 1 as is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
             from civicrm_contribution ctrb
         ) t
@@ -2025,7 +2025,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
                       AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                       AND r.is_active
-                  UNION
+                  UNION ALL
                   -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
                   SELECT DISTINCT
                     if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
@@ -2075,7 +2075,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                   )
                   AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
                   AND cont1.contribution_status_id = 1
-                UNION
+                UNION ALL
                 SELECT
                   total_amount
                 FROM
@@ -2116,7 +2116,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                   )
                   AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
                   AND cont1.contribution_status_id = 1
-                UNION
+                UNION ALL
                 SELECT
                   total_amount
                 FROM
@@ -2150,13 +2150,13 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION
+          UNION ALL
           select
             contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
           from
             civicrm_relationship r
             inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
-          UNION
+          UNION ALL
           select ctrb.contact_id, 0 as relationship_type_id, 1 as is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
             from civicrm_contribution ctrb
         ) t
@@ -2200,7 +2200,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
                       AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
                       AND r.is_active
-                  UNION
+                  UNION ALL
                   -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
                   SELECT DISTINCT
                     if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
@@ -2248,7 +2248,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_a)
                   )
                   AND cont1.contribution_status_id = 1
-                UNION
+                UNION ALL
                 SELECT
                   total_amount
                 FROM
@@ -2287,7 +2287,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_b)
                   )
                   AND cont1.contribution_status_id = 1
-                UNION
+                UNION ALL
                 SELECT
                   total_amount
                 FROM
