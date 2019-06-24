@@ -2715,8 +2715,10 @@ function _jsumfields_sql_rewrite($sql) {
  * Copied and modified from sumfields_generate_data_based_on_current_data().
  *
  * Generate calculated fields for all contacts.
- * This function is designed to be run once when
- * the extension is installed or initialized.
+ *
+ * This function is designed to be run once whenever Summary Fields settings
+ * have changed, e.g., at installation, upon saving the Summary Fields
+ * config form, and at any invocation of the Sumfields.gendata API action.
  *
  * @param CRM_Core_Session $session
  * @return bool
