@@ -913,7 +913,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         AND cont1.financial_type_id IN (%financial_type_ids)
     )',
     'trigger_table' => 'civicrm_contribution',
-    'optgroup' => 'fundraising', // could just add this to the existing "fundraising" optgroup
+    'optgroup' => 'fundraising',
   );
 
   /* For the "Related Contributions" group of fields, we cannot make them work
@@ -1057,7 +1057,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
        ',
       ),
     ),
-    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+    'optgroup' => 'relatedcontrib',
   );
 
   $custom['fields']['relatedcontrib_this_calendar_year'] = array(
@@ -1182,7 +1182,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         ',
       ),
     ),
-    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+    'optgroup' => 'relatedcontrib',
   );
 
   $custom['fields']['relatedcontrib_last_calendar_year'] = array(
@@ -1307,7 +1307,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         ',
       ),
     ),
-    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+    'optgroup' => 'relatedcontrib',
   );
 
   $custom['fields']['relatedcontrib_alltime'] = array(
@@ -1428,7 +1428,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         ',
       ),
     ),
-    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+    'optgroup' => 'relatedcontrib',
   );
 
   $custom['fields']['relatedcontrib_plusme_this_fiscal_year'] = array(
@@ -1604,7 +1604,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         ',
       ),
     ),
-    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+    'optgroup' => 'relatedcontrib',
   );
 
   $custom['fields']['relatedcontrib_plusme_this_calendar_year'] = array(
@@ -1780,7 +1780,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         ',
       ),
     ),
-    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+    'optgroup' => 'relatedcontrib',
   );
 
   $custom['fields']['relatedcontrib_plusme_last_fiscal_year'] = array(
@@ -1956,7 +1956,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         ',
       ),
     ),
-    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+    'optgroup' => 'relatedcontrib',
   );
 
   $custom['fields']['relatedcontrib_plusme_last_calendar_year'] = array(
@@ -2132,7 +2132,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         ',
       ),
     ),
-    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+    'optgroup' => 'relatedcontrib',
   );
 
   $custom['fields']['relatedcontrib_plusme_alltime'] = array(
@@ -2302,27 +2302,20 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         ',
       ),
     ),
-    'optgroup' => 'relatedcontrib', // could just add this to the existing "fundraising" optgroup
+    'optgroup' => 'relatedcontrib',
   );
 
-  // Define a new optgroup fieldset, to contain our Related Contributions fields
-  // and options.
+  // Define new optgroup fieldsets to contain our new fields
   $custom['optgroups']['relatedcontrib'] = array(
     'title' => 'Related Contribution Fields',
     'fieldset' => 'Related Contributions',
     'component' => 'CiviContribute',
   );
-
-  // Define a new optgroup fieldset, to contain our Related Contributions fields
-  // and options.
   $custom['optgroups']['civimail'] = array(
     'title' => 'CiviMail Fields',
     'fieldset' => 'CiviMail',
     'component' => 'CiviMail',
   );
-
-  // Define a new optgroup fieldset, to contain our Related Contributions fields
-  // and options.
   $custom['optgroups']['civigrant'] = array(
     'title' => 'CiviGrant Fields',
     'fieldset' => 'CiviGrant',

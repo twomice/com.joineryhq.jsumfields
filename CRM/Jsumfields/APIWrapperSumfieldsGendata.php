@@ -16,5 +16,5 @@ class CRM_Jsumfields_APIWrapperSumfieldsGendata {
     $result['values'][0] .= "; Update for com.joineryhq.jsumfields returned: {$status}.";
     return $result;
   }
-  
+
 }
