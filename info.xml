@@ -14,16 +14,17 @@
     <url desc="Support">https://github.com/twomice/com.joineryhq.jsumfields/issues</url>
     <url desc="Licensing">http://www.gnu.org/licenses/gpl-3.0.html</url>
   </urls>
-  <releaseDate>2017-05-23</releaseDate>
-  <version>1.0</version>
+  <releaseDate>2020-05-21</releaseDate>
+  <version>1.1</version>
   <develStage>stable</develStage>
   <compatibility>
     <ver>4.7</ver>
+    <ver>5.0</ver>
   </compatibility>
   <requires>
     <ext>net.ourpowerbase.sumfields</ext>
   </requires>
-  <comments>Initial development sponsored by McKenzie River Gathering Foundation.</comments>
+  <comments>Addes a large number of available Summary Fields, configurable in the Summary Fields Settings form.</comments>
   <civix>
     <namespace>CRM/Jsumfields</namespace>
   </civix>
