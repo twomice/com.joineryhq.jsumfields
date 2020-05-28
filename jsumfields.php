@@ -1361,182 +1361,6 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     'optgroup' => 'relatedcontrib',
   );
 
-  $custom['fields']['relatedcontrib_plusme_this_calendar_year'] = array(
-    'label' => jsumfields_ts('Combined contact & related contact contributions this calendar year'),
-    'data_type' => 'Money',
-    'html_type' => 'Text',
-    'weight' => '15',
-    'text_length' => '32',
-    'trigger_sql' => _jsumfields_sql_rewrite('
-    (
-      select coalesce(sum(total_amount)) as total from
-        (
-          select
-            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
-          from
-            civicrm_relationship r
-            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION ALL
-          select
-            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
-          from
-            civicrm_relationship r
-            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
-          UNION ALL
-          select ctrb.contact_id, 0 as relationship_type_id, 1 as is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
-            from civicrm_contribution ctrb
-        ) t
-        where
-          t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids, 0)
-          and t.is_active
-          and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-          AND YEAR(CAST(receive_date AS DATE)) = YEAR(CURDATE())
-          AND t.contribution_status_id = 1
-          AND contact_id_a = NEW.contact_id
-        group by contact_id_a
-      )
-    '),
-    'trigger_table' => 'civicrm_contribution',
-    'jsumfields_extra' => array(
-      array(
-        'trigger_table' => 'civicrm_contribution',
-        'trigger_sql' => '
-          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
-          SELECT t.related_contact_id, t.total
-          FROM
-            (
-              SELECT
-              donors.related_contact_id, coalesce(sum(ctrb.total_amount), 0) as total
-              FROM
-                (
-                  SELECT DISTINCT
-                      -- Everyone related to everyone related to NEW.contact_id
-                    t.related_contact_id, if(t.related_contact_id = r.contact_id_b, r.contact_id_a, r.contact_id_b) as donor_contact_id
-                  FROM
-                    (
-                      -- Everyone related to NEW.contact_id
-                      select DISTINCT
-                        if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
-                      from
-                        civicrm_relationship r
-                      WHERE
-                        NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                        AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
-                        AND r.is_active
-                    ) t
-                    INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
-                      AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
-                      AND r.is_active
-                  UNION ALL
-                  -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
-                  SELECT DISTINCT
-                    if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
-                  from
-                    civicrm_relationship r
-                  WHERE
-                    NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
-                    AND r.is_active
-                ) donors
-                LEFT JOIN civicrm_contribution ctrb
-                  ON (
-                    ctrb.contact_id = donors.donor_contact_id
-                  )
-                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND YEAR(CAST(ctrb.receive_date AS DATE)) = YEAR(CURDATE())
-                  AND ctrb.contribution_status_id = 1
-              GROUP BY
-                donors.related_contact_id
-            ) t
-          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',
-      ),
-      array(
-        'trigger_table' => 'civicrm_relationship',
-        'trigger_sql' => '
-          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
-            SELECT NEW.contact_id_a, t.total
-            FROM
-            (
-              SELECT
-                coalesce(sum(total_amount), 0) as total
-              FROM
-              (
-                select cont1.total_amount
-                from
-                  civicrm_relationship r
-                  INNER JOIN civicrm_contribution cont1
-                WHERE
-                  r.is_active
-                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND (
-                    (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
-                    OR
-                    (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_a)
-                  )
-                  AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
-                  AND cont1.contribution_status_id = 1
-                UNION ALL
-                SELECT
-                  total_amount
-                FROM
-                  civicrm_contribution
-                WHERE
-                  contact_id = NEW.contact_id_a
-                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND YEAR(CAST(receive_date AS DATE)) = YEAR(CURDATE())
-                  AND contribution_status_id = 1
-              ) t
-            ) t
-          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',
-      ),
-      array(
-        'trigger_table' => 'civicrm_relationship',
-        'trigger_sql' => '
-          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
-            SELECT NEW.contact_id_b, t.total
-            FROM
-            (
-              SELECT
-                coalesce(sum(total_amount), 0) as total
-              FROM
-              (
-                select cont1.total_amount
-                from
-                  civicrm_relationship r
-                  INNER JOIN civicrm_contribution cont1
-                WHERE
-                  r.is_active
-                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND (
-                    (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
-                    OR
-                    (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_b)
-                  )
-                  AND YEAR(CAST(cont1.receive_date AS DATE)) = YEAR(CURDATE())
-                  AND cont1.contribution_status_id = 1
-                UNION ALL
-                SELECT
-                  total_amount
-                FROM
-                  civicrm_contribution
-                WHERE
-                  contact_id = NEW.contact_id_b
-                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND YEAR(CAST(receive_date AS DATE)) = YEAR(CURDATE())
-                  AND contribution_status_id = 1
-              ) t
-            ) t
-          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',
-      ),
-    ),
-    'optgroup' => 'relatedcontrib',
-  );
-
   $custom['fields']['relatedcontrib_plusme_last_fiscal_year'] = array(
     'label' => jsumfields_ts('Combined contact & related contact contributions last fiscal year'),
     'data_type' => 'Money',
@@ -1713,181 +1537,9 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     'optgroup' => 'relatedcontrib',
   );
 
-  $custom['fields']['relatedcontrib_plusme_last_calendar_year'] = array(
-    'label' => jsumfields_ts('Combined contact & related contact contributions last calendar year'),
-    'data_type' => 'Money',
-    'html_type' => 'Text',
-    'weight' => '15',
-    'text_length' => '32',
-    'trigger_sql' => _jsumfields_sql_rewrite('
-    (
-      select coalesce(sum(total_amount)) as total from
-        (
-          select
-            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
-          from
-            civicrm_relationship r
-            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
-          UNION ALL
-          select
-            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
-          from
-            civicrm_relationship r
-            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
-          UNION ALL
-          select ctrb.contact_id, 0 as relationship_type_id, 1 as is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
-            from civicrm_contribution ctrb
-        ) t
-        where
-          t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids, 0)
-          and t.is_active
-          and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-          AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
-          AND t.contribution_status_id = 1
-          AND contact_id_a = NEW.contact_id
-        group by contact_id_a
-      )
-    '),
-    'trigger_table' => 'civicrm_contribution',
-    'jsumfields_extra' => array(
-      array(
-        'trigger_table' => 'civicrm_contribution',
-        'trigger_sql' => '
-          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
-          SELECT t.related_contact_id, t.total
-          FROM
-            (
-              SELECT
-              donors.related_contact_id, coalesce(sum(ctrb.total_amount), 0) as total
-              FROM
-                (
-                  SELECT DISTINCT
-                      -- Everyone related to everyone related to NEW.contact_id
-                    t.related_contact_id, if(t.related_contact_id = r.contact_id_b, r.contact_id_a, r.contact_id_b) as donor_contact_id
-                  FROM
-                    (
-                      -- Everyone related to NEW.contact_id
-                      select DISTINCT
-                        if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
-                      from
-                        civicrm_relationship r
-                      WHERE
-                        NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                        AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
-                        AND r.is_active
-                    ) t
-                    INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
-                      AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
-                      AND r.is_active
-                  UNION ALL
-                  -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
-                  SELECT DISTINCT
-                    if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
-                  from
-                    civicrm_relationship r
-                  WHERE
-                    NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
-                    AND r.is_active
-                ) donors
-                LEFT JOIN civicrm_contribution ctrb
-                  ON (
-                    ctrb.contact_id = donors.donor_contact_id
-                  )
-                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND YEAR(CAST(ctrb.receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
-                  AND ctrb.contribution_status_id = 1
-              GROUP BY
-                donors.related_contact_id
-            ) t
-          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',
-      ),
-      array(
-        'trigger_table' => 'civicrm_relationship',
-        'trigger_sql' => '
-          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
-            SELECT NEW.contact_id_a, t.total
-            FROM
-            (
-              SELECT
-                coalesce(sum(total_amount), 0) as total
-              FROM
-              (
-                select cont1.total_amount
-                from
-                  civicrm_relationship r
-                  INNER JOIN civicrm_contribution cont1
-                WHERE
-                  r.is_active
-                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND (
-                    (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
-                    OR
-                    (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_a)
-                  )
-                  AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
-                  AND cont1.contribution_status_id = 1
-                UNION ALL
-                SELECT
-                  total_amount
-                FROM
-                  civicrm_contribution
-                WHERE
-                  contact_id = NEW.contact_id_a
-                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
-                  AND contribution_status_id = 1
-              ) t
-            ) t
-          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',
-      ),
-      array(
-        'trigger_table' => 'civicrm_relationship',
-        'trigger_sql' => '
-          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
-            SELECT NEW.contact_id_b, t.total
-            FROM
-            (
-              SELECT
-                coalesce(sum(total_amount), 0) as total
-              FROM
-              (
-                select cont1.total_amount
-                from
-                  civicrm_relationship r
-                  INNER JOIN civicrm_contribution cont1
-                WHERE
-                  r.is_active
-                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
-                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND (
-                    (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
-                    OR
-                    (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_b)
-                  )
-                  AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
-                  AND cont1.contribution_status_id = 1
-                UNION ALL
-                SELECT
-                  total_amount
-                FROM
-                  civicrm_contribution
-                WHERE
-                  contact_id = NEW.contact_id_b
-                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE()) - 1)
-                  AND contribution_status_id = 1
-              ) t
-            ) t
-          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',
-      ),
-    ),
-    'optgroup' => 'relatedcontrib',
-  );
+  $custom['fields']['relatedcontrib_plusme_this_calendar_year'] = _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_year(jsumfields_ts('Combined contact & related contact contributions this calendar year'), 0);
+  $custom['fields']['relatedcontrib_plusme_last_calendar_year'] = _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_year(jsumfields_ts('Combined contact & related contact contributions last calendar year'), 1);
+  $custom['fields']['relatedcontrib_plusme_year_before_last_calendar_year'] = _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_year(jsumfields_ts('Combined contact & related contact contributions year before last calendar year'), 2);
 
   $custom['fields']['relatedcontrib_plusme_alltime'] = array(
     'label' => jsumfields_ts('Combined contact & related contact contributions all time'),
@@ -2661,6 +2313,184 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
                 )
                 AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE()) - $yearOffset)
                 AND cont1.contribution_status_id = 1
+            ) t
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
+        ",
+      ),
+    ),
+    'optgroup' => 'relatedcontrib',
+  );
+}
+
+function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_year($label, $yearOffset = 0) {
+  return array(
+    'label' => $label,
+    'data_type' => 'Money',
+    'html_type' => 'Text',
+    'weight' => '15',
+    'text_length' => '32',
+    'trigger_sql' => _jsumfields_sql_rewrite("
+    (
+      select coalesce(sum(total_amount)) as total from
+        (
+          select
+            contact_id_a, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_b
+          UNION ALL
+          select
+            contact_id_b, r.relationship_type_id, r.is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+          from
+            civicrm_relationship r
+            inner join civicrm_contribution ctrb ON ctrb.contact_id = r.contact_id_a
+          UNION ALL
+          select ctrb.contact_id, 0 as relationship_type_id, 1 as is_active, ctrb.financial_type_id, ctrb.receive_date, ctrb.total_amount, ctrb.contribution_status_id
+            from civicrm_contribution ctrb
+        ) t
+        where
+          t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids, 0)
+          and t.is_active
+          and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
+          AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE())- $yearOffset)
+          AND t.contribution_status_id = 1
+          AND contact_id_a = NEW.contact_id
+        group by contact_id_a
+      )
+    "),
+    'trigger_table' => 'civicrm_contribution',
+    'jsumfields_extra' => array(
+      array(
+        'trigger_table' => 'civicrm_contribution',
+        'trigger_sql' => "
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
+          SELECT t.related_contact_id, t.total
+          FROM
+            (
+              SELECT
+              donors.related_contact_id, coalesce(sum(ctrb.total_amount), 0) as total
+              FROM
+                (
+                  SELECT DISTINCT
+                      -- Everyone related to everyone related to NEW.contact_id
+                    t.related_contact_id, if(t.related_contact_id = r.contact_id_b, r.contact_id_a, r.contact_id_b) as donor_contact_id
+                  FROM
+                    (
+                      -- Everyone related to NEW.contact_id
+                      select DISTINCT
+                        if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
+                      from
+                        civicrm_relationship r
+                      WHERE
+                        NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
+                        AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                        AND r.is_active
+                    ) t
+                    INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
+                      AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                      AND r.is_active
+                  UNION ALL
+                  -- Repeat one row for each person related to NEW.contact_id (we want to count them too)
+                  SELECT DISTINCT
+                    if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a), if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a)
+                  from
+                    civicrm_relationship r
+                  WHERE
+                    NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
+                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                    AND r.is_active
+                ) donors
+                LEFT JOIN civicrm_contribution ctrb
+                  ON (
+                    ctrb.contact_id = donors.donor_contact_id
+                  )
+                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
+                  AND YEAR(CAST(ctrb.receive_date AS DATE)) = (YEAR(CURDATE())- $yearOffset)
+                  AND ctrb.contribution_status_id = 1
+              GROUP BY
+                donors.related_contact_id
+            ) t
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
+        ",
+      ),
+      array(
+        'trigger_table' => 'civicrm_relationship',
+        'trigger_sql' => "
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
+            SELECT NEW.contact_id_a, t.total
+            FROM
+            (
+              SELECT
+                coalesce(sum(total_amount), 0) as total
+              FROM
+              (
+                select cont1.total_amount
+                from
+                  civicrm_relationship r
+                  INNER JOIN civicrm_contribution cont1
+                WHERE
+                  r.is_active
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
+                  AND (
+                    (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_a)
+                    OR
+                    (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_a)
+                  )
+                  AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE())- $yearOffset)
+                  AND cont1.contribution_status_id = 1
+                UNION ALL
+                SELECT
+                  total_amount
+                FROM
+                  civicrm_contribution
+                WHERE
+                  contact_id = NEW.contact_id_a
+                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
+                  AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE())- $yearOffset)
+                  AND contribution_status_id = 1
+              ) t
+            ) t
+          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
+        ",
+      ),
+      array(
+        'trigger_table' => 'civicrm_relationship',
+        'trigger_sql' => "
+          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
+            SELECT NEW.contact_id_b, t.total
+            FROM
+            (
+              SELECT
+                coalesce(sum(total_amount), 0) as total
+              FROM
+              (
+                select cont1.total_amount
+                from
+                  civicrm_relationship r
+                  INNER JOIN civicrm_contribution cont1
+                WHERE
+                  r.is_active
+                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
+                  AND cont1.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
+                  AND (
+                    (cont1.contact_id = r.contact_id_b AND r.contact_id_a = NEW.contact_id_b)
+                    OR
+                    (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_b)
+                  )
+                  AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE())- $yearOffset)
+                  AND cont1.contribution_status_id = 1
+                UNION ALL
+                SELECT
+                  total_amount
+                FROM
+                  civicrm_contribution
+                WHERE
+                  contact_id = NEW.contact_id_b
+                  AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
+                  AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE())- $yearOffset)
+                  AND contribution_status_id = 1
+              ) t
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ",
