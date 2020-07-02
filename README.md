@@ -28,6 +28,7 @@ This extension currently provides the following fields:
 * CiviContribute/Relationship: Combined contact & related contact contributions this fiscal year
 * CiviContribute/Relationship: Combined contact & related contact contributions this calendar year
 * CiviContribute/Relationship: Combined contact & related contact contributions last fiscal year
+* CiviContribute/Relationship: Combined contact & related contact contributions year before last calendar year 
 * CiviContribute/Relationship: Combined contact & related contact contributions last calendar year
 * CiviContribute/Relationship: Combined contact & related contact contributions all time
 * CiviEvents: Date of the first attended event
