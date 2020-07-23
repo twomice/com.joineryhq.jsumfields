@@ -1,6 +1,7 @@
 <?php
 
 class CRM_Jsumfields_APIWrapperSumfieldsGendata {
+
   /**
    * the wrapper contains a method that allows you to alter the parameters of the api request (including the action and the entity)
    */

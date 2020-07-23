@@ -1856,26 +1856,28 @@ function jsumfields_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_preProcess
  *
-  function jsumfields_civicrm_preProcess($formName, &$form) {
+ */
+// function jsumfields_civicrm_preProcess($formName, &$form) {
 
-  } // */
+// }
 
 /**
  * Implements hook_civicrm_navigationMenu().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
  *
-  function jsumfields_civicrm_navigationMenu(&$menu) {
-  _jsumfields_civix_insert_navigation_menu($menu, NULL, array(
-  'label' => ts('The Page', array('domain' => 'com.joineryhq.jsumfields')),
-  'name' => 'the_page',
-  'url' => 'civicrm/the-page',
-  'permission' => 'access CiviReport,access CiviContribute',
-  'operator' => 'OR',
-  'separator' => 0,
-  ));
-  _jsumfields_civix_navigationMenu($menu);
-  } // */
+ */
+// function jsumfields_civicrm_navigationMenu(&$menu) {
+// _jsumfields_civix_insert_navigation_menu($menu, NULL, array(
+// 'label' => ts('The Page', array('domain' => 'com.joineryhq.jsumfields')),
+// 'name' => 'the_page',
+// 'url' => 'civicrm/the-page',
+// 'permission' => 'access CiviReport,access CiviContribute',
+// 'operator' => 'OR',
+// 'separator' => 0,
+// ));
+// _jsumfields_civix_navigationMenu($menu);
+// }
 
 /**
  * Wrapper for ts() to save me some typing.
@@ -2232,36 +2234,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
     'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
-        'trigger_sql' => "
-          INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
-            SELECT t.related_contact_id, t.total
-            FROM
-            (
-              SELECT
-                t.related_contact_id, if(t.related_contact_id = r.contact_id_b, r.contact_id_a, r.contact_id_b) as donor_contact_id, coalesce(sum(ctrb.total_amount), 0) as total
-              FROM
-                (
-                  select DISTINCT
-                    NEW.contact_id, if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id
-                  from
-                    civicrm_relationship r
-                  WHERE
-                    NEW.contact_id IN (r.contact_id_a, r.contact_id_b)
-                    AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
-                    AND r.is_active
-                ) t
-                INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a)
-                  AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
-                  AND r.is_active
-                LEFT JOIN civicrm_contribution ctrb ON ctrb.contact_id = if(t.related_contact_id = r.contact_id_b, r.contact_id_a, r.contact_id_b)
-                  and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND YEAR(CAST(ctrb.receive_date AS DATE)) = (YEAR(CURDATE()) - $yearOffset)
-                  AND ctrb.contribution_status_id = 1
-              GROUP BY
-                t.related_contact_id
-            ) t
-          ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ",
+        'trigger_sql' => "INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name) SELECT t.related_contact_id, t.total FROM (SELECT t.related_contact_id, if(t.related_contact_id = r.contact_id_b, r.contact_id_a, r.contact_id_b) as donor_contact_id, coalesce(sum(ctrb.total_amount), 0) as total FROM (select DISTINCT NEW.contact_id, if(r.contact_id_a = NEW.contact_id, r.contact_id_b, r.contact_id_a) as related_contact_id from civicrm_relationship r WHERE NEW.contact_id IN (r.contact_id_a, r.contact_id_b) AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids) AND r.is_active ) t INNER JOIN civicrm_relationship r ON t.related_contact_id in (r.contact_id_b, r.contact_id_a) AND r.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids) AND r.is_active LEFT JOIN civicrm_contribution ctrb ON ctrb.contact_id = if(t.related_contact_id = r.contact_id_b, r.contact_id_a, r.contact_id_b) and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids) AND YEAR(CAST(ctrb.receive_date AS DATE)) = (YEAR(CURDATE()) - $yearOffset) AND ctrb.contribution_status_id = 1 GROUP BY t.related_contact_id ) t ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total; ",
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
@@ -2498,4 +2471,5 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
     ),
     'optgroup' => 'relatedcontrib',
   );
+
 }
