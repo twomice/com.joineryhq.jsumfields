@@ -527,6 +527,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_mailing_event_queue q1
                     INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
                     INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
+                    INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
                   WHERE
                     q1.id = NEW.event_queue_id
                     AND j.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
@@ -540,6 +541,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_mailing_event_queue q1
                     INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
                     INNER JOIN civicrm_mailing_event_opened o ON o.event_queue_id = q2.id
+                    INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
                   WHERE
                     q1.id = NEW.event_queue_id
                     AND j.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
@@ -553,6 +555,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_mailing_event_queue q1
                     INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
                     INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
+                    INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
                   WHERE
                     q1.id = NEW.event_queue_id
                     AND j.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
@@ -580,6 +583,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_mailing_event_queue q1
                     INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
                     INNER JOIN civicrm_mailing_event_delivered d ON d.event_queue_id = q2.id
+                    INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
                   WHERE
                     q1.id = NEW.event_queue_id
                     AND j.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
@@ -593,6 +597,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_mailing_event_queue q1
                     INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
                     INNER JOIN civicrm_mailing_event_opened o ON o.event_queue_id = q2.id
+                    INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
                   WHERE
                     q1.id = NEW.event_queue_id
                     AND j.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
@@ -606,6 +611,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
                     civicrm_mailing_event_queue q1
                     INNER JOIN civicrm_mailing_event_queue q2 ON q1.contact_id = q2.contact_id
                     INNER JOIN civicrm_mailing_event_bounce b ON b.event_queue_id = q2.id
+                    INNER JOIN civicrm_mailing_job j ON j.id = q2.job_id
                   WHERE
                     q1.id = NEW.event_queue_id
                     AND j.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
