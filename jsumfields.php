@@ -199,7 +199,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         FROM
           (
           SELECT
-            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
           FROM
           (
             -- total mailings sent to contact
@@ -246,7 +246,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -296,7 +296,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -346,7 +346,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -406,7 +406,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         FROM
           (
           SELECT
-            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
           FROM
           (
             -- total mailings sent to contact
@@ -462,7 +462,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -518,7 +518,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -571,7 +571,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -634,7 +634,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     SELECT t.contact_id, t.rate
     FROM (
       SELECT
-        s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+        s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
       FROM
       (
         -- total mailings-with-trackable-links sent to contact
@@ -699,7 +699,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         FROM
           (
           SELECT
-            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
           FROM
           (
             -- total mailings-with-trackable-links sent to contact
