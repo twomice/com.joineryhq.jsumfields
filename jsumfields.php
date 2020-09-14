@@ -199,7 +199,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         FROM
           (
           SELECT
-            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
           FROM
           (
             -- total mailings sent to contact
@@ -246,7 +246,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -296,7 +296,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -346,7 +346,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -406,7 +406,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         FROM
           (
           SELECT
-            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
           FROM
           (
             -- total mailings sent to contact
@@ -462,7 +462,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -518,7 +518,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -574,7 +574,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               FROM
                 (
                 SELECT
-                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+                  s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
                 FROM
                 (
                   -- total mailings sent to contact
@@ -640,7 +640,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     SELECT t.contact_id, t.rate
     FROM (
       SELECT
-        s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+        s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
       FROM
       (
         -- total mailings-with-trackable-links sent to contact
@@ -705,7 +705,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         FROM
           (
           SELECT
-            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / (coalesce(s.sent, 0) - coalesce(b.bounced, 0)), 0) * 100, 2) as rate
+            s.contact_id, ROUND(coalesce(coalesce(o.opened, 0) / NULLIF(coalesce(s.sent, 0) - coalesce(b.bounced, 0), 0), 0) * 100, 2) as rate
           FROM
           (
             -- total mailings-with-trackable-links sent to contact
@@ -1862,26 +1862,28 @@ function jsumfields_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_preProcess
  *
-  function jsumfields_civicrm_preProcess($formName, &$form) {
+ */
+// function jsumfields_civicrm_preProcess($formName, &$form) {
 
-  } // */
+// }
 
 /**
  * Implements hook_civicrm_navigationMenu().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
  *
-  function jsumfields_civicrm_navigationMenu(&$menu) {
-  _jsumfields_civix_insert_navigation_menu($menu, NULL, array(
-  'label' => ts('The Page', array('domain' => 'com.joineryhq.jsumfields')),
-  'name' => 'the_page',
-  'url' => 'civicrm/the-page',
-  'permission' => 'access CiviReport,access CiviContribute',
-  'operator' => 'OR',
-  'separator' => 0,
-  ));
-  _jsumfields_civix_navigationMenu($menu);
-  } // */
+ */
+// function jsumfields_civicrm_navigationMenu(&$menu) {
+// _jsumfields_civix_insert_navigation_menu($menu, NULL, array(
+// 'label' => ts('The Page', array('domain' => 'com.joineryhq.jsumfields')),
+// 'name' => 'the_page',
+// 'url' => 'civicrm/the-page',
+// 'permission' => 'access CiviReport,access CiviContribute',
+// 'operator' => 'OR',
+// 'separator' => 0,
+// ));
+// _jsumfields_civix_navigationMenu($menu);
+// }
 
 /**
  * Wrapper for ts() to save me some typing.
@@ -2238,7 +2240,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
     'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
-        'trigger_sql' => "
+        'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT t.related_contact_id, t.total
             FROM
@@ -2267,11 +2269,11 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
                 t.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ",
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
-        'trigger_sql' => "
+        'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
@@ -2294,11 +2296,11 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
                 AND cont1.contribution_status_id = 1
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ",
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
-        'trigger_sql' => "
+        'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
@@ -2321,7 +2323,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
                 AND cont1.contribution_status_id = 1
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ",
+        ',
       ),
     ),
     'optgroup' => 'relatedcontrib',
@@ -2368,7 +2370,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
     'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
-        'trigger_sql' => "
+        'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
           SELECT t.related_contact_id, t.total
           FROM
@@ -2417,11 +2419,11 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
                 donors.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ",
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
-        'trigger_sql' => "
+        'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
@@ -2458,11 +2460,11 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
               ) t
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ",
+        ',
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
-        'trigger_sql' => "
+        'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
@@ -2499,9 +2501,10 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
               ) t
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ",
+        ',
       ),
     ),
     'optgroup' => 'relatedcontrib',
   );
+
 }
