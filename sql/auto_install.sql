@@ -10,4 +10,4 @@ DROP TABLE IF EXISTS `civicrm_jsumfields_placeholder`;
 CREATE TABLE `civicrm_jsumfields_placeholder` (
   `contact_id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`contact_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1
+) ENGINE=InnoDB
