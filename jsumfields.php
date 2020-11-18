@@ -2230,7 +2230,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
           t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids)
           and t.is_active
           and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-          AND YEAR(CAST(t.receive_date AS DATE)) = (YEAR(CURDATE()) - $yearOffset)
+          AND YEAR(CAST(t.receive_date AS DATE)) = (YEAR(CURDATE()) - {$yearOffset})
           AND t.contribution_status_id = 1
           AND contact_id_a = NEW.contact_id
         group by contact_id_a
@@ -2263,7 +2263,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
                   AND r.is_active
                 LEFT JOIN civicrm_contribution ctrb ON ctrb.contact_id = if(t.related_contact_id = r.contact_id_b, r.contact_id_a, r.contact_id_b)
                   and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND YEAR(CAST(ctrb.receive_date AS DATE)) = (YEAR(CURDATE()) - $yearOffset)
+                  AND YEAR(CAST(ctrb.receive_date AS DATE)) = (YEAR(CURDATE()) - ' . $yearOffset . ')
                   AND ctrb.contribution_status_id = 1
               GROUP BY
                 t.related_contact_id
@@ -2292,7 +2292,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
                   OR
                   (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_a)
                 )
-                AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE()) - $yearOffset)
+                AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE()) - ' . $yearOffset . ')
                 AND cont1.contribution_status_id = 1
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
@@ -2319,7 +2319,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
                   OR
                   (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_b)
                 )
-                AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE()) - $yearOffset)
+                AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE()) - ' . $yearOffset . ')
                 AND cont1.contribution_status_id = 1
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
@@ -2360,7 +2360,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
           t.relationship_type_id in (%jsumfields_relatedcontrib_relationship_type_ids, 0)
           and t.is_active
           and t.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-          AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE())- $yearOffset)
+          AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE())- {$yearOffset})
           AND t.contribution_status_id = 1
           AND contact_id_a = NEW.contact_id
         group by contact_id_a
@@ -2413,7 +2413,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
                     ctrb.contact_id = donors.donor_contact_id
                   )
                   and ctrb.financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND YEAR(CAST(ctrb.receive_date AS DATE)) = (YEAR(CURDATE())- $yearOffset)
+                  AND YEAR(CAST(ctrb.receive_date AS DATE)) = (YEAR(CURDATE())- ' . $yearOffset . ')
                   AND ctrb.contribution_status_id = 1
               GROUP BY
                 donors.related_contact_id
@@ -2445,7 +2445,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
                     OR
                     (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_a)
                   )
-                  AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE())- $yearOffset)
+                  AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE())- ' . $yearOffset . ')
                   AND cont1.contribution_status_id = 1
                 UNION ALL
                 SELECT
@@ -2455,7 +2455,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
                 WHERE
                   contact_id = NEW.contact_id_a
                   AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE())- $yearOffset)
+                  AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE())- ' . $yearOffset . ')
                   AND contribution_status_id = 1
               ) t
             ) t
@@ -2486,7 +2486,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
                     OR
                     (cont1.contact_id = r.contact_id_a AND r.contact_id_b = NEW.contact_id_b)
                   )
-                  AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE())- $yearOffset)
+                  AND YEAR(CAST(cont1.receive_date AS DATE)) = (YEAR(CURDATE())- ' . $yearOffset . ')
                   AND cont1.contribution_status_id = 1
                 UNION ALL
                 SELECT
@@ -2496,7 +2496,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
                 WHERE
                   contact_id = NEW.contact_id_b
                   AND financial_type_id in (%jsumfields_relatedcontrib_financial_type_ids)
-                  AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE())- $yearOffset)
+                  AND YEAR(CAST(receive_date AS DATE)) = (YEAR(CURDATE())- ' . $yearOffset . ')
                   AND contribution_status_id = 1
               ) t
             ) t
