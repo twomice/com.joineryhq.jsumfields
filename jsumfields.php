@@ -2240,7 +2240,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
     'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
-        'trigger_sql' => '
+        'trigger_sql' => "
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT t.related_contact_id, t.total
             FROM
@@ -2269,11 +2269,11 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
                 t.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',
+        ",
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
-        'trigger_sql' => '
+        'trigger_sql' => "
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
@@ -2296,11 +2296,11 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
                 AND cont1.contribution_status_id = 1
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',
+        ",
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
-        'trigger_sql' => '
+        'trigger_sql' => "
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
@@ -2323,7 +2323,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
                 AND cont1.contribution_status_id = 1
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',
+        ",
       ),
     ),
     'optgroup' => 'relatedcontrib',
@@ -2370,7 +2370,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
     'jsumfields_extra' => array(
       array(
         'trigger_table' => 'civicrm_contribution',
-        'trigger_sql' => '
+        'trigger_sql' => "
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
           SELECT t.related_contact_id, t.total
           FROM
@@ -2419,11 +2419,11 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
                 donors.related_contact_id
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',
+        ",
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
-        'trigger_sql' => '
+        'trigger_sql' => "
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_a, t.total
             FROM
@@ -2460,11 +2460,11 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
               ) t
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',
+        ",
       ),
       array(
         'trigger_table' => 'civicrm_relationship',
-        'trigger_sql' => '
+        'trigger_sql' => "
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
             SELECT NEW.contact_id_b, t.total
             FROM
@@ -2501,7 +2501,7 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
               ) t
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
-        ',
+        ",
       ),
     ),
     'optgroup' => 'relatedcontrib',
