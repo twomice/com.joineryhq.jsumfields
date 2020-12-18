@@ -1,6 +1,7 @@
 <?php
 
 require_once 'jsumfields.civix.php';
+use CRM_Jsumfields_ExtensionUtil as E;
 
 /**
  * Implements hook_civicrm_apiWrappers().
