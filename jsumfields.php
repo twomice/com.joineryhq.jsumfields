@@ -1,6 +1,7 @@
 <?php
 
 require_once 'jsumfields.civix.php';
+use CRM_Jsumfields_ExtensionUtil as E;
 
 /**
  * Implements hook_civicrm_apiWrappers().
@@ -1875,7 +1876,7 @@ function jsumfields_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  */
 // function jsumfields_civicrm_navigationMenu(&$menu) {
 // _jsumfields_civix_insert_navigation_menu($menu, NULL, array(
-// 'label' => ts('The Page', array('domain' => 'com.joineryhq.jsumfields')),
+// 'label' => E::ts('The Page', array('domain' => 'com.joineryhq.jsumfields')),
 // 'name' => 'the_page',
 // 'url' => 'civicrm/the-page',
 // 'permission' => 'access CiviReport,access CiviContribute',
@@ -1895,7 +1896,7 @@ function jsumfields_ts($text, $params = array()) {
   if (!array_key_exists('domain', $params)) {
     $params['domain'] = 'com.joineryhq.jsumfields';
   }
-  return ts($text, $params);
+  return E::ts($text, $params);
 }
 
 /**
@@ -1969,7 +1970,7 @@ function jsumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
         // If we fail to properly rewrite the sql, don't set the trigger
         // to avoid sql exceptions.
         if (FALSE === $trigger) {
-          $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
+          $msg = sprintf(E::ts("Failed to rewrite sql for %s field."), $base_column_name);
           $session->setStatus($msg);
           continue;
         }
@@ -2150,7 +2151,7 @@ function _jsumfields_generate_data_based_on_current_data($session = NULL) {
     $session = CRM_Core_Session::singleton();
   }
   if (empty($sumfieldsCustomTableName)) {
-    $session::setStatus(ts("Your configuration may be corrupted. Please disable and renable this extension."), ts('Error'), 'error');
+    $session::setStatus(E::ts("Your configuration may be corrupted. Please disable and renable this extension."), E::ts('Error'), 'error');
     return FALSE;
   }
 
@@ -2181,7 +2182,7 @@ function _jsumfields_generate_data_based_on_current_data($session = NULL) {
     $updateQuery = sumfields_sql_rewrite($updateQuery);
 
     if (FALSE === $updateQuery) {
-      $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
+      $msg = sprintf(E::ts("Failed to rewrite sql for %s field."), $base_column_name);
       $session->setStatus($msg);
       continue;
     }
