@@ -2047,10 +2047,16 @@ function _jsumfields_get_all_relationship_types() {
  */
 function _jsumfields_get_all_grant_statuses() {
   $grantStatuses = array();
-  $result = civicrm_api3('OptionValue', 'get', array(
-    'sequential' => 1,
-    'option_group_id' => "grant_status",
-  ));
+  try {
+    $result = civicrm_api3('OptionValue', 'get', array(
+      'sequential' => 1,
+      'option_group_id' => "grant_status",
+    ));
+  }
+  catch (CiviCRM_API3_Exception $e) {
+    // civigrant probably not enabled
+    return $grantStatuses;
+  }
   foreach ($result['values'] as $value) {
     $grantStatuses[$value['value']] = $value['label'];
   }
@@ -2064,10 +2070,16 @@ function _jsumfields_get_all_grant_statuses() {
  */
 function _jsumfields_get_all_grant_types() {
   $grantStatuses = array();
-  $result = civicrm_api3('OptionValue', 'get', array(
-    'sequential' => 1,
-    'option_group_id' => "grant_type",
-  ));
+  try {
+    $result = civicrm_api3('OptionValue', 'get', array(
+      'sequential' => 1,
+      'option_group_id' => "grant_type",
+    ));
+  }
+  catch (CiviCRM_API3_Exception $e) {
+    // civigrant probably not enabled
+    return $grantStatuses;
+  }
   foreach ($result['values'] as $value) {
     $grantStatuses[$value['value']] = $value['label'];
   }
