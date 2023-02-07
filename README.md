@@ -15,7 +15,7 @@ This extension currently provides the following fields:
 * CiviContribute: Total Contributions last calendar year (also: renames Summary Fields "Total Contributions last year" to "Total Contributions last fiscal year")
 * CiviContribute: Total Contributions Calendar Year Before Last (also: renames Summary Fields "Total Contributions Year Before Last" to "Total Contributions Fiscal Year Before Last")
 * CiviContribute: Lifetime contributions + soft credits
-* CiviContribute: Number of years of contributions
+* CiviContribute: Number of years of contributions (Number of distinct years in which contributions were made)
 * CiviContribute: Total soft credits this calendar year
 * CiviContribute: Total soft credits previous calendar year
 * CiviContribute: Total soft credits previous fiscal year
