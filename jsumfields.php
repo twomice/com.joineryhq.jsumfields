@@ -18,7 +18,7 @@ function jsumfields_civicrm_apiWrappers(&$wrappers, $apiRequest) {
 function jsumfields_civicrm_buildForm($formName, &$form) {
   if ($formName == 'CRM_Sumfields_Form_SumFields') {
     $tpl = CRM_Core_Smarty::singleton();
-    $fieldsets = $tpl->_tpl_vars['fieldsets'];
+    $fieldsets = $tpl->getTemplateVars()['fieldsets'];
 
     // Get jsumfields definitions, because we need the fieldset names as a target
     // for where to insert our option fields
