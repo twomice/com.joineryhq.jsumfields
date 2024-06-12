@@ -18,8 +18,7 @@
   <version>1.2</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>4.7</ver>
-    <ver>5.0</ver>
+    <ver>5.65</ver>
   </compatibility>
   <requires>
     <ext>net.ourpowerbase.sumfields</ext>
@@ -27,5 +26,11 @@
   <comments>Addes a large number of available Summary Fields, configurable in the Summary Fields Settings form.</comments>
   <civix>
     <namespace>CRM/Jsumfields</namespace>
+    <format>23.02.1</format>
   </civix>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
+  <upgrader>CRM_Jsumfields_Upgrader</upgrader>
 </extension>
