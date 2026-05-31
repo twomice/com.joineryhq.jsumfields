@@ -1981,7 +1981,7 @@ function _jsumfields_get_all_grant_statuses() {
  * @return array Suitable for a select field.
  */
 function _jsumfields_get_all_grant_types() {
-  $grantStatuses = array();
+  $grantTypes = array();
   try {
     $result = civicrm_api3('OptionValue', 'get', array(
       'sequential' => 1,
@@ -1990,12 +1990,12 @@ function _jsumfields_get_all_grant_types() {
   }
   catch (CRM_Core_Exception $e) {
     // civigrant probably not enabled
-    return $grantStatuses;
+    return $grantTypes;
   }
   foreach ($result['values'] as $value) {
-    $grantStatuses[$value['value']] = $value['label'];
+    $grantTypes[$value['value']] = $value['label'];
   }
-  return $grantStatuses;
+  return $grantTypes;
 }
 
 /**
