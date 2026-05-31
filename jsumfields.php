@@ -1816,6 +1816,11 @@ function jsumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
     return;
   }
 
+  // check if we need to generate triggers or if it will be updated using cron
+  if (sumfields_get_setting('data_update_method','via_triggers') != 'via_triggers') {
+    return;
+  }
+
   // If any enabled fields have 'jsumfields_extra' defined, formulate
   // a trigger for them and add to $info.
   // Our triggers all use custom fields. CiviCRM, when generating
