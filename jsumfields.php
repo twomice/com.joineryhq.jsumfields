@@ -822,7 +822,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
 
   $custom['fields']['contribution_count_distinct_years'] = array(
     'label' => jsumfields_ts('Number of Years of Contributions'),
-    'data_type' => 'Integer',
+    'data_type' => 'Int',
     'html_type' => 'Text',
     'weight' => '15',
     'text_length' => '32',
