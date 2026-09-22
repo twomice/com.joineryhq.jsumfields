@@ -22,36 +22,36 @@ function jsumfields_civicrm_buildForm($formName, &$form) {
 
     // Get jsumfields definitions, because we need the fieldset names as a target
     // for where to insert our option fields
-    $custom = array();
+    $custom = [];
     jsumfields_civicrm_sumfields_definitions($custom);
 
     // Create a field for Financial Types on related contributions.
     $label = jsumfields_ts('Financial Types');
-    $form->add('select', 'jsumfields_relatedcontrib_financial_type_ids', $label, sumfields_get_all_financial_types(), FALSE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $form->add('select', 'jsumfields_relatedcontrib_financial_type_ids', $label, sumfields_get_all_financial_types(), FALSE, ['multiple' => TRUE, 'class' => 'crm-select2 huge']);
     $fieldsets[$custom['optgroups']['relatedcontrib']['fieldset']]['jsumfields_relatedcontrib_financial_type_ids'] = jsumfields_ts('Financial types to be used when calculating Related Contribution summary fields.');
 
     // Create a field for Relationship Types on related contributions.
     $label = jsumfields_ts('Relationship Types');
-    $form->add('select', 'jsumfields_relatedcontrib_relationship_type_ids', $label, _jsumfields_get_all_relationship_types(), FALSE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $form->add('select', 'jsumfields_relatedcontrib_relationship_type_ids', $label, _jsumfields_get_all_relationship_types(), FALSE, ['multiple' => TRUE, 'class' => 'crm-select2 huge']);
     $fieldsets[$custom['optgroups']['relatedcontrib']['fieldset']]['jsumfields_relatedcontrib_relationship_type_ids'] = jsumfields_ts('Relationship types to be used when calculating Related Contribution summary fields.');
 
     // Create a field for Grant Status on grant fields.
     $label = jsumfields_ts('Grant Statuses');
-    $form->add('select', 'jsumfields_grant_status_ids', $label, _jsumfields_get_all_grant_statuses(), FALSE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $form->add('select', 'jsumfields_grant_status_ids', $label, _jsumfields_get_all_grant_statuses(), FALSE, ['multiple' => TRUE, 'class' => 'crm-select2 huge']);
     $fieldsets[$custom['optgroups']['civigrant']['fieldset']]['jsumfields_grant_status_ids'] = jsumfields_ts('Grant statuses to be used when calculating Grant fields.');
 
     // Create a field for Grant Type on grant fields.
     $label = jsumfields_ts('Grant Types');
-    $form->add('select', 'jsumfields_grant_type_ids', $label, _jsumfields_get_all_grant_types(), FALSE, array('multiple' => TRUE, 'class' => 'crm-select2 huge'));
+    $form->add('select', 'jsumfields_grant_type_ids', $label, _jsumfields_get_all_grant_types(), FALSE, ['multiple' => TRUE, 'class' => 'crm-select2 huge']);
     $fieldsets[$custom['optgroups']['civigrant']['fieldset']]['jsumfields_grant_type_ids'] = jsumfields_ts('Grant types to be used when calculating Grant fields.');
 
     // Set defaults.
-    $form->setDefaults(array(
+    $form->setDefaults([
       'jsumfields_relatedcontrib_financial_type_ids' => sumfields_get_setting('jsumfields_relatedcontrib_financial_type_ids'),
       'jsumfields_relatedcontrib_relationship_type_ids' => sumfields_get_setting('jsumfields_relatedcontrib_relationship_type_ids'),
       'jsumfields_grant_status_ids' => sumfields_get_setting('jsumfields_grant_status_ids'),
       'jsumfields_grant_type_ids' => sumfields_get_setting('jsumfields_grant_type_ids'),
-    ));
+    ]);
 
     $form->assign('fieldsets', $fieldsets);
   }
@@ -91,7 +91,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
   $custom['fields']['contribution_total_year_before_last']['label'] = jsumfields_ts('Total Contributions Fiscal Year Before Last');
   $custom['fields']['soft_total_this_year']['label'] = jsumfields_ts('Total Soft Credits this Fiscal Year');
 
-  $custom['fields']['event_first_attended_date'] = array(
+  $custom['fields']['event_first_attended_date'] = [
     'label' => jsumfields_ts('Date of the first attended event'),
     'data_type' => 'Date',
     'html_type' => 'Select Date',
@@ -110,9 +110,9 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     )',
     'trigger_table' => 'civicrm_participant',
     'optgroup' => 'event_standard',
-  );
+  ];
 
-  $custom['fields']['grant_count_received'] = array(
+  $custom['fields']['grant_count_received'] = [
     'label' => jsumfields_ts('Total number of grants received'),
     'data_type' => 'Int',
     'html_type' => 'Text',
@@ -132,9 +132,9 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     '),
     'trigger_table' => 'civicrm_grant',
     'optgroup' => 'civigrant',
-  );
+  ];
 
-  $custom['fields']['grant_total_received'] = array(
+  $custom['fields']['grant_total_received'] = [
     'label' => jsumfields_ts('Total amount in grants received'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -154,9 +154,9 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     '),
     'trigger_table' => 'civicrm_grant',
     'optgroup' => 'civigrant',
-  );
+  ];
 
-  $custom['fields']['grant_types_received'] = array(
+  $custom['fields']['grant_types_received'] = [
     'label' => jsumfields_ts('Grant types received'),
     'data_type' => 'String',
     'html_type' => 'Text',
@@ -184,9 +184,9 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     '),
     'trigger_table' => 'civicrm_grant',
     'optgroup' => 'civigrant',
-  );
+  ];
 
-  $custom['fields']['mail_openrate_alltime'] = array(
+  $custom['fields']['mail_openrate_alltime'] = [
     'label' => jsumfields_ts('Open rate rate all time'),
     'data_type' => 'Float',
     'html_type' => 'Text',
@@ -238,8 +238,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         ) t
       ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
     ',
-    'jsumfields_extra' => array(
-      array(
+    'jsumfields_extra' => [
+      [
         'trigger_table' => 'civicrm_mailing_event_delivered',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -288,8 +288,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               ) t
             ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_mailing_event_bounce',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -338,8 +338,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               ) t
             ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_mailing_event_opened',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -388,12 +388,12 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               ) t
             ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
-      ),
-    ),
+      ],
+    ],
     'optgroup' => 'civimail',
-  );
+  ];
 
-  $custom['fields']['mail_openrate_last12months'] = array(
+  $custom['fields']['mail_openrate_last12months'] = [
     'label' => jsumfields_ts('Open rate rate last 12 months'),
     'data_type' => 'Float',
     'html_type' => 'Text',
@@ -454,8 +454,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         ) t
       ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
     ',
-    'jsumfields_extra' => array(
-      array(
+    'jsumfields_extra' => [
+      [
         'trigger_table' => 'civicrm_mailing_event_delivered',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -510,8 +510,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               ) t
             ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_mailing_event_bounce',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -566,8 +566,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               ) t
             ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_mailing_event_opened',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -622,10 +622,10 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
               ) t
             ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
         ',
-      ),
-    ),
+      ],
+    ],
     'optgroup' => 'civimail',
-  );
+  ];
 
   $mail_clickrate_alltime_jsumfields_extra_trigger_sql = '
 
@@ -683,7 +683,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     ) t
     ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
   ';
-  $custom['fields']['mail_clickrate_alltime'] = array(
+  $custom['fields']['mail_clickrate_alltime'] = [
     'label' => jsumfields_ts('Click-through rate all time'),
     'data_type' => 'Float',
     'html_type' => 'Text',
@@ -748,24 +748,24 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
         ) t
       ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.rate;
     ',
-    'jsumfields_extra' => array(
-      array(
+    'jsumfields_extra' => [
+      [
         'trigger_table' => 'civicrm_mailing_event_delivered',
         'trigger_sql' => $mail_clickrate_alltime_jsumfields_extra_trigger_sql,
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_mailing_event_bounce',
         'trigger_sql' => $mail_clickrate_alltime_jsumfields_extra_trigger_sql,
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_mailing_event_trackable_url_open',
         'trigger_sql' => $mail_clickrate_alltime_jsumfields_extra_trigger_sql,
-      ),
-    ),
+      ],
+    ],
     'optgroup' => 'civimail',
-  );
+  ];
 
-  $custom['fields']['contribution_total_this_calendar_year'] = array(
+  $custom['fields']['contribution_total_this_calendar_year'] = [
     'label' => jsumfields_ts('Total Contributions this Calendar Year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -782,9 +782,9 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     )',
     'trigger_table' => 'civicrm_contribution',
     'optgroup' => 'fundraising',
-  );
+  ];
 
-  $custom['fields']['contribution_total_last_calendar_year'] = array(
+  $custom['fields']['contribution_total_last_calendar_year'] = [
     'label' => jsumfields_ts('Total Contributions last Calendar Year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -800,9 +800,9 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     )',
     'trigger_table' => 'civicrm_contribution',
     'optgroup' => 'fundraising',
-  );
+  ];
 
-  $custom['fields']['contribution_total_calendar_year_before_last'] = array(
+  $custom['fields']['contribution_total_calendar_year_before_last'] = [
     'label' => jsumfields_ts('Total Contributions Calendar Year Before Last'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -818,9 +818,9 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     )',
     'trigger_table' => 'civicrm_contribution',
     'optgroup' => 'fundraising',
-  );
+  ];
 
-  $custom['fields']['contribution_count_distinct_years'] = array(
+  $custom['fields']['contribution_count_distinct_years'] = [
     'label' => jsumfields_ts('Number of Years of Contributions'),
     'data_type' => 'Integer',
     'html_type' => 'Text',
@@ -836,9 +836,9 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     )',
     'trigger_table' => 'civicrm_contribution',
     'optgroup' => 'fundraising',
-  );
+  ];
 
-  $custom['fields']['soft_total_this_calendar_year'] = array(
+  $custom['fields']['soft_total_this_calendar_year'] = [
     'label' => jsumfields_ts('Total Soft Credits this Calendar Year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -858,9 +858,9 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     )',
     'trigger_table' => 'civicrm_contribution_soft',
     'optgroup' => 'soft',
-  );
+  ];
 
-  $custom['fields']['soft_total_last_calendar_year'] = array(
+  $custom['fields']['soft_total_last_calendar_year'] = [
     'label' => jsumfields_ts('Total Soft Credits last Calendar Year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -880,9 +880,9 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     )',
     'trigger_table' => 'civicrm_contribution_soft',
     'optgroup' => 'soft',
-  );
+  ];
 
-  $custom['fields']['soft_total_last_fiscal_year'] = array(
+  $custom['fields']['soft_total_last_fiscal_year'] = [
     'label' => jsumfields_ts('Total Soft Credits last Fiscal Year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -902,9 +902,9 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     )',
     'trigger_table' => 'civicrm_contribution_soft',
     'optgroup' => 'soft',
-  );
+  ];
 
-  $custom['fields']['hard_and_soft'] = array(
+  $custom['fields']['hard_and_soft'] = [
     'label' => jsumfields_ts('Lifetime contributions + soft credits'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -921,7 +921,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
     )',
     'trigger_table' => 'civicrm_contribution',
     'optgroup' => 'fundraising',
-  );
+  ];
 
   /* For the "Related Contributions" group of fields, we cannot make them work
    * as true sumfields fields, because of assumptions in sumfields
@@ -942,7 +942,7 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
    * jsumfields_civicrm_triggerInfo().
    */
 
-  $custom['fields']['relatedcontrib_this_fiscal_year'] = array(
+  $custom['fields']['relatedcontrib_this_fiscal_year'] = [
     'label' => jsumfields_ts('Related contact contributions this fiscal year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -975,8 +975,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'jsumfields_extra' => array(
-      array(
+    'jsumfields_extra' => [
+      [
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1008,8 +1008,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1035,8 +1035,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1062,16 +1062,16 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
        ',
-      ),
-    ),
+      ],
+    ],
     'optgroup' => 'relatedcontrib',
-  );
+  ];
 
   $custom['fields']['relatedcontrib_this_calendar_year'] = _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year(jsumfields_ts('Related contact contributions this calendar year'), 0);
   $custom['fields']['relatedcontrib_last_calendar_year'] = _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year(jsumfields_ts('Related contact contributions last calendar year'), 1);
   $custom['fields']['relatedcontrib_year_before_last_calendar_year'] = _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year(jsumfields_ts('Related contact contributions year before last calendar year'), 2);
 
-  $custom['fields']['relatedcontrib_alltime'] = array(
+  $custom['fields']['relatedcontrib_alltime'] = [
     'label' => jsumfields_ts('Related contact contributions all time'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -1103,8 +1103,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'jsumfields_extra' => array(
-      array(
+    'jsumfields_extra' => [
+      [
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1135,8 +1135,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1161,8 +1161,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1187,12 +1187,12 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-    ),
+      ],
+    ],
     'optgroup' => 'relatedcontrib',
-  );
+  ];
 
-  $custom['fields']['relatedcontrib_plusme_this_fiscal_year'] = array(
+  $custom['fields']['relatedcontrib_plusme_this_fiscal_year'] = [
     'label' => jsumfields_ts('Combined contact & related contact contributions this fiscal year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -1228,8 +1228,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'jsumfields_extra' => array(
-      array(
+    'jsumfields_extra' => [
+      [
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1281,8 +1281,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1322,8 +1322,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1363,12 +1363,12 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-    ),
+      ],
+    ],
     'optgroup' => 'relatedcontrib',
-  );
+  ];
 
-  $custom['fields']['relatedcontrib_plusme_last_fiscal_year'] = array(
+  $custom['fields']['relatedcontrib_plusme_last_fiscal_year'] = [
     'label' => jsumfields_ts('Combined contact & related contact contributions last fiscal year'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -1404,8 +1404,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'jsumfields_extra' => array(
-      array(
+    'jsumfields_extra' => [
+      [
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1457,8 +1457,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1498,8 +1498,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1539,16 +1539,16 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-    ),
+      ],
+    ],
     'optgroup' => 'relatedcontrib',
-  );
+  ];
 
   $custom['fields']['relatedcontrib_plusme_this_calendar_year'] = _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_year(jsumfields_ts('Combined contact & related contact contributions this calendar year'), 0);
   $custom['fields']['relatedcontrib_plusme_last_calendar_year'] = _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_year(jsumfields_ts('Combined contact & related contact contributions last calendar year'), 1);
   $custom['fields']['relatedcontrib_plusme_year_before_last_calendar_year'] = _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_year(jsumfields_ts('Combined contact & related contact contributions year before last calendar year'), 2);
 
-  $custom['fields']['relatedcontrib_plusme_alltime'] = array(
+  $custom['fields']['relatedcontrib_plusme_alltime'] = [
     'label' => jsumfields_ts('Combined contact & related contact contributions all time'),
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -1583,8 +1583,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
       )
     '),
     'trigger_table' => 'civicrm_contribution',
-    'jsumfields_extra' => array(
-      array(
+    'jsumfields_extra' => [
+      [
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1635,8 +1635,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1674,8 +1674,8 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => '
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -1713,27 +1713,27 @@ function jsumfields_civicrm_sumfields_definitions(&$custom) {
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ',
-      ),
-    ),
+      ],
+    ],
     'optgroup' => 'relatedcontrib',
-  );
+  ];
 
   // Define new optgroup fieldsets to contain our new fields
-  $custom['optgroups']['relatedcontrib'] = array(
+  $custom['optgroups']['relatedcontrib'] = [
     'title' => 'Related Contribution Fields',
     'fieldset' => 'Related Contributions',
     'component' => 'CiviContribute',
-  );
-  $custom['optgroups']['civimail'] = array(
+  ];
+  $custom['optgroups']['civimail'] = [
     'title' => 'CiviMail Fields',
     'fieldset' => 'CiviMail',
     'component' => 'CiviMail',
-  );
-  $custom['optgroups']['civigrant'] = array(
+  ];
+  $custom['optgroups']['civigrant'] = [
     'title' => 'CiviGrant Fields',
     'fieldset' => 'CiviGrant',
     'component' => 'CiviGrant',
-  );
+  ];
 }
 
 /**
@@ -1799,7 +1799,7 @@ function jsumfields_civicrm_enable() {
  * @param array $params Any replacement parameters.
  * @return string The translated string.
  */
-function jsumfields_ts($text, $params = array()) {
+function jsumfields_ts($text, $params = []) {
   if (!array_key_exists('domain', $params)) {
     $params['domain'] = 'com.joineryhq.jsumfields';
   }
@@ -1835,19 +1835,19 @@ function jsumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
   // Load the field and group definitions because we need the trigger
   // clause that is stored here.
   // Only get jsumfields definitions.
-  $custom = array();
+  $custom = [];
   jsumfields_civicrm_sumfields_definitions($custom);
 
   // We create a trigger sql statement for each table that should
   // have a trigger
-  $tables = array();
+  $tables = [];
   $generic_sql = "INSERT INTO `$sumfieldsCustomTableName` SET ";
-  $sql_field_parts = array();
+  $sql_field_parts = [];
 
-  $active_fields = sumfields_get_setting('active_fields', array());
+  $active_fields = sumfields_get_setting('active_fields', []);
 
   $session = CRM_Core_Session::singleton();
-  $triggers = array();
+  $triggers = [];
   // Iterate over all our fields, and build out a sql parts array
   foreach ($custom_fields as $base_column_name => $params) {
     if (!in_array($base_column_name, $active_fields)) {
@@ -1896,26 +1896,26 @@ function jsumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
 
   foreach ($triggers as $customTriggerTableName => $sql) {
     // We want to fire this trigger on insert, update and delete.
-    $info[] = array(
+    $info[] = [
       'table' => $customTriggerTableName,
       'when' => 'AFTER',
       'event' => 'INSERT',
       'sql' => $sql,
-    );
-    $info[] = array(
+    ];
+    $info[] = [
       'table' => $customTriggerTableName,
       'when' => 'AFTER',
       'event' => 'UPDATE',
       'sql' => $sql,
-    );
+    ];
     // For delete, we reference OLD.field instead of NEW.field
     $sql = str_replace('NEW.', 'OLD.', $sql);
-    $info[] = array(
+    $info[] = [
       'table' => $customTriggerTableName,
       'when' => 'AFTER',
       'event' => 'DELETE',
       'sql' => $sql,
-    );
+    ];
   }
 
   foreach ($info as $id => $triggerInfo) {
@@ -1937,12 +1937,12 @@ function jsumfields_civicrm_triggerInfo(&$info, $triggerTableName) {
  * @return array Suitable for a select field.
  */
 function _jsumfields_get_all_relationship_types() {
-  $relationshipTypes = array();
-  $result = civicrm_api3('relationshipType', 'get', array(
-    'options' => array(
+  $relationshipTypes = [];
+  $result = civicrm_api3('relationshipType', 'get', [
+    'options' => [
       'limit' => 0,
-    ),
-  ));
+    ],
+  ]);
   foreach ($result['values'] as $value) {
     if (empty($value['name_a_b'])) {
       continue;
@@ -1958,12 +1958,12 @@ function _jsumfields_get_all_relationship_types() {
  * @return array Suitable for a select field.
  */
 function _jsumfields_get_all_grant_statuses() {
-  $grantStatuses = array();
+  $grantStatuses = [];
   try {
-    $result = civicrm_api3('OptionValue', 'get', array(
+    $result = civicrm_api3('OptionValue', 'get', [
       'sequential' => 1,
       'option_group_id' => "grant_status",
-    ));
+    ]);
   }
   catch (CRM_Core_Exception $e) {
     // civigrant probably not enabled
@@ -1981,12 +1981,12 @@ function _jsumfields_get_all_grant_statuses() {
  * @return array Suitable for a select field.
  */
 function _jsumfields_get_all_grant_types() {
-  $grantTypes = array();
+  $grantTypes = [];
   try {
-    $result = civicrm_api3('OptionValue', 'get', array(
+    $result = civicrm_api3('OptionValue', 'get', [
       'sequential' => 1,
       'option_group_id' => "grant_type",
-    ));
+    ]);
   }
   catch (CRM_Core_Exception $e) {
     // civigrant probably not enabled
@@ -2012,7 +2012,7 @@ function _jsumfields_sql_rewrite($sql) {
   // is added, summary fields will have to be re-configured.
 
   // Replace %jsumfields_relatedcontrib_relationship_type_ids
-  $ids = sumfields_get_setting('jsumfields_relatedcontrib_relationship_type_ids', array());
+  $ids = sumfields_get_setting('jsumfields_relatedcontrib_relationship_type_ids', []);
   if (count($ids) == 0) {
     $ids = array_keys(_jsumfields_get_all_relationship_types());
   }
@@ -2020,7 +2020,7 @@ function _jsumfields_sql_rewrite($sql) {
   $sql = str_replace('%jsumfields_relatedcontrib_relationship_type_ids', $str_ids, $sql);
 
   // Replace %jsumfields_relatedcontrib_financial_type_ids
-  $ids = sumfields_get_setting('jsumfields_relatedcontrib_financial_type_ids', array());
+  $ids = sumfields_get_setting('jsumfields_relatedcontrib_financial_type_ids', []);
   if (count($ids) == 0) {
     $ids = array_keys(sumfields_get_all_financial_types());
   }
@@ -2028,7 +2028,7 @@ function _jsumfields_sql_rewrite($sql) {
   $sql = str_replace('%jsumfields_relatedcontrib_financial_type_ids', $str_ids, $sql);
 
   // Replace %jsumfields_grant_status_ids
-  $ids = sumfields_get_setting('jsumfields_grant_status_ids', array());
+  $ids = sumfields_get_setting('jsumfields_grant_status_ids', []);
   if (count($ids) == 0) {
     $ids = array_keys(_jsumfields_get_all_grant_statuses());
   }
@@ -2036,7 +2036,7 @@ function _jsumfields_sql_rewrite($sql) {
   $sql = str_replace('%jsumfields_grant_status_ids', $str_ids, $sql);
 
   // Replace %jsumfields_grant_type_ids
-  $ids = sumfields_get_setting('jsumfields_grant_type_ids', array());
+  $ids = sumfields_get_setting('jsumfields_grant_type_ids', []);
   if (count($ids) == 0) {
     $ids = array_keys(_jsumfields_get_all_grant_types());
   }
@@ -2082,13 +2082,13 @@ function _jsumfields_generate_data_based_on_current_data($session = NULL) {
   // Load the field and group definitions because we need the jsumfields_trigger_sql_*
   // properties that are stored here.
   // Only get jsumfields definitions.
-  $custom = array();
+  $custom = [];
   jsumfields_civicrm_sumfields_definitions($custom);
 
-  $active_fields = sumfields_get_setting('active_fields', array());
+  $active_fields = sumfields_get_setting('active_fields', []);
 
   // Variables used for building the temp tables and temp insert statement.
-  $temp_sql = array();
+  $temp_sql = [];
 
   foreach ($custom_fields as $base_column_name => $params) {
     if (
@@ -2129,7 +2129,7 @@ function _jsumfields_sql_rewrite_with_custom_params($sql, $columnName, $tableNam
 }
 
 function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($label, $yearOffset = 0) {
-  return array(
+  return [
     'label' => $label,
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -2162,8 +2162,8 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
       )
     "),
     'trigger_table' => 'civicrm_contribution',
-    'jsumfields_extra' => array(
-      array(
+    'jsumfields_extra' => [
+      [
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => "
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -2195,8 +2195,8 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ",
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => "
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -2222,8 +2222,8 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ",
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => "
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -2249,14 +2249,14 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_calendar_year($labe
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ",
-      ),
-    ),
+      ],
+    ],
     'optgroup' => 'relatedcontrib',
-  );
+  ];
 }
 
 function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_year($label, $yearOffset = 0) {
-  return array(
+  return [
     'label' => $label,
     'data_type' => 'Money',
     'html_type' => 'Text',
@@ -2292,8 +2292,8 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
       )
     "),
     'trigger_table' => 'civicrm_contribution',
-    'jsumfields_extra' => array(
-      array(
+    'jsumfields_extra' => [
+      [
         'trigger_table' => 'civicrm_contribution',
         'trigger_sql' => "
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -2345,8 +2345,8 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ",
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => "
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -2386,8 +2386,8 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ",
-      ),
-      array(
+      ],
+      [
         'trigger_table' => 'civicrm_relationship',
         'trigger_sql' => "
           INSERT INTO %%jsumfields_custom_table_name (entity_id, %%jsumfields_custom_column_name)
@@ -2427,9 +2427,9 @@ function _jsumfields_get_sumfields_definition_relatedcontrib_plusme_calendar_yea
             ) t
           ON DUPLICATE KEY UPDATE %%jsumfields_custom_column_name = t.total;
         ",
-      ),
-    ),
+      ],
+    ],
     'optgroup' => 'relatedcontrib',
-  );
+  ];
 
 }
